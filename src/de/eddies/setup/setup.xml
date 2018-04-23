@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<setup>
+	<database>
+		<host>localhost</host>
+		<port>3306</port>
+		<dbname>EDDIES</dbname>		
+		<user>root</user>
+		<pwd>Sun12shine</pwd>
+	</database>
+</setup>
