@@ -1,4 +1,27 @@
-var WeekCalendar = function(date) {
+/**
+ * All about the main view of out great application :-)
+ */
+var MainView = (function() {
+
+    return {
+
+	calendar : null,
+
+	/**
+	 * 
+	 */
+	init : function() {
+	    this.calendar = new MainViewCalendar();
+	}
+    }
+})();
+
+/**
+ * Der MainviewCalendar stellt initial die belegung der aktuellen KW dar. Für
+ * angemeldete Benutzer (mit der entsprechenden Kompetenz) bietet er auch noch
+ * Möglichkeiten des editierens eines Termins
+ */
+var MainViewCalendar = function(date) {
 
     this.currentDate = date || new Date();
     this.setupUI();
@@ -8,13 +31,15 @@ var WeekCalendar = function(date) {
 /**
  * 
  */
-WeekCalendar.prototype.setupUI = function() {
+MainViewCalendar.prototype.setupUI = function() {
 
     var self = this;
+
     UIUtils.getElement("calendar-go-back").addEventListener("click", function(evt) {
 	self.currentDate.setDate(self.currentDate.getDate() - 7);
 	self.update();
     });
+
     UIUtils.getElement("calendar-go-fore").addEventListener("click", function(evt) {
 	self.currentDate.setDate(self.currentDate.getDate() + 7);
 	self.update();
@@ -24,7 +49,7 @@ WeekCalendar.prototype.setupUI = function() {
 /**
  * 
  */
-WeekCalendar.prototype.update = function() {
+MainViewCalendar.prototype.update = function() {
 
     // update title
     var weekOfYear = DateTimeUtils.formatDate(this.currentDate, "Kalenderwoche {w}-{yyyy}");
@@ -41,7 +66,7 @@ WeekCalendar.prototype.update = function() {
 /**
  * 
  */
-WeekCalendar.prototype.fillWeek = function(startDate, endDate) {
+MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
 
     UIUtils.clearChilds("workspace-body");
     var currentDate = new Date(startDate);
@@ -56,7 +81,7 @@ WeekCalendar.prototype.fillWeek = function(startDate, endDate) {
 /**
  * Finde vom aktuellen Datum aus den ersten Montag in der Vergangenheit
  */
-WeekCalendar.prototype.findStartDate = function() {
+MainViewCalendar.prototype.findStartDate = function() {
 
     var result = new Date(this.currentDate);
     result.setDate(result.getDate() - DateTimeUtils.normalizeDayOfWeek(result));
@@ -66,7 +91,7 @@ WeekCalendar.prototype.findStartDate = function() {
 /**
  * Finde vom aktuellen Datum aus den ersten Sonntag in der Zukunft
  */
-WeekCalendar.prototype.findLastDate = function() {
+MainViewCalendar.prototype.findLastDate = function() {
 
     var result = new Date(this.findStartDate());
     result.setDate(result.getDate() + 6);
@@ -76,7 +101,7 @@ WeekCalendar.prototype.findLastDate = function() {
 /**
  * Lade das Wochen-Model
  */
-WeekCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
+MainViewCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
 
     var self = this;
     var caller = new ServiceCaller();
@@ -85,7 +110,7 @@ WeekCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
 	onsuccess();
     }
     caller.onError = function(req, status) {
-
+	// TODO: not yet implemented
     }
 
     var req = XmlUtils.createDocument("get-calendar-req");
@@ -97,7 +122,7 @@ WeekCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
 /**
  * 
  */
-WeekCalendar.prototype.makeDay = function(date) {
+MainViewCalendar.prototype.makeDay = function(date) {
 
     var day = document.createElement("div");
     day.className = "calendar-day";

@@ -1,4 +1,4 @@
-package de.eddies.calendar;
+package de.eddies.mainview;
 
 import java.sql.Date;
 import java.sql.Time;

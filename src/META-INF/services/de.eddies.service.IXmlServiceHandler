@@ -1,9 +1,1 @@
-de.eddies.calendar.GetCalendarHandler
-
-de.eddies.session.GetAllAccountsHandler
-de.eddies.session.GetSessionStateHandler
-de.eddies.session.LogonHandler
-de.eddies.session.LogoutHandler
-
-de.eddies.member.GetMemberOverviewHandler
-de.eddies.member.SaveMemberHandler
+de.eddies.mainview.GetCalendarHandler

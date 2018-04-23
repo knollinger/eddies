@@ -1,4 +1,4 @@
-package de.eddies.calendar;
+package de.eddies.mainview;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -17,11 +17,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
-import de.eddies.role.Role;
 import de.eddies.service.ErrorResponse;
 import de.eddies.service.IJAXBObject;
 import de.eddies.service.IXmlServiceHandler;
-import de.eddies.session.SessionWrapper;
 import de.eddies.utils.SQLDateXMLAdapter;
 
 /**
@@ -30,24 +28,6 @@ import de.eddies.utils.SQLDateXMLAdapter;
  */
 public class GetCalendarHandler implements IXmlServiceHandler
 {
-    /* (non-Javadoc)
-     * @see de.eddies.service.IXmlServiceHandler#needsSession()
-     */
-    @Override
-    public boolean needsSession()
-    {
-        return false;
-    }
-
-    /* (non-Javadoc)
-     * @see de.eddies.service.IXmlServiceHandler#roleNeeded()
-     */
-    @Override
-    public Role roleNeeded()
-    {
-        return Role.GUEST;
-    }
-
     /* (non-Javadoc)
      * @see de.eddies.service.IXmlServiceHandler#getResponsibleFor()
      */
@@ -73,7 +53,7 @@ public class GetCalendarHandler implements IXmlServiceHandler
      * @see de.eddies.service.IXmlServiceHandler#handleRequest(de.eddies.service.IJAXBObject, de.eddies.service.SessionWrapper)
      */
     @Override
-    public IJAXBObject handleRequest(IJAXBObject request, SessionWrapper session)
+    public IJAXBObject handleRequest(IJAXBObject request)
     {
         Connection conn = null;
         PreparedStatement stmt = null;

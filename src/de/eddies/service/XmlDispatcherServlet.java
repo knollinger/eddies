@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
-import de.eddies.session.SessionLostResponse;
-import de.eddies.session.SessionWrapper;
-
 
 /**
  * Servlet implementation class DispatcherServlet
@@ -67,7 +64,6 @@ public class XmlDispatcherServlet extends HttpServlet
         try
         {
             IJAXBObject reqObj = JAXBSerializer.readObject(request.getInputStream());
-            SessionWrapper session = new SessionWrapper(request.getSession());
 
             IXmlServiceHandler handler = this.handlers.get(reqObj.getClass());
             if (handler == null)
@@ -78,17 +74,7 @@ public class XmlDispatcherServlet extends HttpServlet
             }
             else
             {
-                IJAXBObject rspObj = null;
-                if (handler.needsSession() && !session.isValid())
-                {
-                    rspObj = new SessionLostResponse();
-                }
-                else
-                {
-                    // TODO: Rollenprüfung
-                    rspObj = handler.handleRequest(reqObj, session);
-                }
-
+                IJAXBObject rspObj = handler.handleRequest(reqObj);
                 if (rspObj != null)
                 {
                     response.setHeader("Content-Encoding", "gzip");
