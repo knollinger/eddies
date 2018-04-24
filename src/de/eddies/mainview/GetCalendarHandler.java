@@ -20,6 +20,7 @@ import de.eddies.database.DBUtils;
 import de.eddies.service.ErrorResponse;
 import de.eddies.service.IJAXBObject;
 import de.eddies.service.IXmlServiceHandler;
+import de.eddies.session.SessionWrapper;
 import de.eddies.utils.SQLDateXMLAdapter;
 
 /**
@@ -28,6 +29,16 @@ import de.eddies.utils.SQLDateXMLAdapter;
  */
 public class GetCalendarHandler implements IXmlServiceHandler
 {
+
+    /* (non-Javadoc)
+     * @see de.eddies.service.IXmlServiceHandler#needSession()
+     */
+    @Override
+    public boolean needSession()
+    {
+        return false;
+    }
+
     /* (non-Javadoc)
      * @see de.eddies.service.IXmlServiceHandler#getResponsibleFor()
      */
@@ -53,7 +64,7 @@ public class GetCalendarHandler implements IXmlServiceHandler
      * @see de.eddies.service.IXmlServiceHandler#handleRequest(de.eddies.service.IJAXBObject, de.eddies.service.SessionWrapper)
      */
     @Override
-    public IJAXBObject handleRequest(IJAXBObject request)
+    public IJAXBObject handleRequest(IJAXBObject request, SessionWrapper session)
     {
         Connection conn = null;
         PreparedStatement stmt = null;

@@ -2,6 +2,8 @@ package de.eddies.service;
 
 import java.util.Collection;
 
+import de.eddies.session.SessionWrapper;
+
 
 /**
  * Das Interface, welches die Schnittstellen aller ServiceImplementierungen
@@ -12,6 +14,11 @@ import java.util.Collection;
  */
 public interface IXmlServiceHandler
 {
+    /**
+     * @return
+     */
+    public boolean needSession();
+    
     /**
      * @return die Klasse des RequestObjects, fuer welches diese 
      *         Implementierung zustaendig ist
@@ -32,5 +39,5 @@ public interface IXmlServiceHandler
      * @param session
      * @return
      */
-    public IJAXBObject handleRequest(IJAXBObject request);
+    public IJAXBObject handleRequest(IJAXBObject request, SessionWrapper session);
 }

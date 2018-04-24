@@ -15,12 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
+import de.eddies.session.SessionWrapper;
+
 
 /**
  * Servlet implementation class DispatcherServlet
  */
 @SuppressWarnings("serial")
-@WebServlet(description = "Dispatched anhand der RequestTypen", urlPatterns = {"/xmlservice"}, loadOnStartup=1)
+@WebServlet(description = "Dispatched anhand der RequestTypen", urlPatterns = {"/xmlservice"}, loadOnStartup = 1)
 public class XmlDispatcherServlet extends HttpServlet
 {
     private Map<Class<? extends IJAXBObject>, IXmlServiceHandler> handlers;
@@ -46,7 +48,7 @@ public class XmlDispatcherServlet extends HttpServlet
 
             Collection<Class<? extends IJAXBObject>> usedClasses = handler.getUsedJaxbClasses();
             for (Class<? extends IJAXBObject> usedClass : usedClasses)
-            {                
+            {
                 JAXBSerializer.registerClass(usedClass);
             }
             this.handlers.put(clazz, handler);
@@ -57,8 +59,7 @@ public class XmlDispatcherServlet extends HttpServlet
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-        IOException
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
 
         try
@@ -74,7 +75,17 @@ public class XmlDispatcherServlet extends HttpServlet
             }
             else
             {
-                IJAXBObject rspObj = handler.handleRequest(reqObj);
+                IJAXBObject rspObj = null;
+                SessionWrapper session = new SessionWrapper(request.getSession());
+                if (handler.needSession() && !session.isValid())
+                {
+                    rspObj = new ErrorResponse("");
+                }
+                else
+                {
+                    rspObj = handler.handleRequest(reqObj, session);
+                }
+                
                 if (rspObj != null)
                 {
                     response.setHeader("Content-Encoding", "gzip");
@@ -90,9 +101,10 @@ public class XmlDispatcherServlet extends HttpServlet
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
-    
+
     @Override
-    public void init(ServletConfig cfg) {
+    public void init(ServletConfig cfg)
+    {
 
         System.out.println(cfg);
     }

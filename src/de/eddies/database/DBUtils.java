@@ -47,7 +47,6 @@ public class DBUtils
         }
     }
 
-
     /**
      * @param rs
      */
@@ -64,21 +63,5 @@ public class DBUtils
                 // quitly means quitly!
             }
         }
-    }
-
-    /**
-     * @param rs
-     * @param name
-     * @param defValue
-     * @return
-     * @throws SQLException
-     */
-    public static String getStringFromResultOrDefault(ResultSet rs, String name, String defValue) throws SQLException
-    {
-        String result = rs.getString(name);
-        if(result == null) {
-            result = defValue;
-        }
-        return result;
     }
 }

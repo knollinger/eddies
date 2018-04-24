@@ -1,32 +1,19 @@
 /**
- * All about the main view of out great application :-)
- */
-var MainView = (function() {
-
-    return {
-
-	calendar : null,
-
-	/**
-	 * 
-	 */
-	init : function() {
-	    this.calendar = new MainViewCalendar();
-	}
-    }
-})();
-
-/**
  * Der MainviewCalendar stellt initial die belegung der aktuellen KW dar. Für
  * angemeldete Benutzer (mit der entsprechenden Kompetenz) bietet er auch noch
  * Möglichkeiten des editierens eines Termins
  */
-var MainViewCalendar = function(date) {
+var MainViewCalendar = function() {
 
-    this.currentDate = date || new Date();
-    this.setupUI();
-    this.update();
+    var self = this;
+    WorkSpaceFrame.call(this, "gui/main_view/content.html", function(){
+	
+	self.currentDate = new Date();
+	self.setupUI();
+	self.update();	
+    });
 }
+MainViewCalendar.prototype = Object.create(WorkSpaceFrame.prototype)
 
 /**
  * 
@@ -68,12 +55,12 @@ MainViewCalendar.prototype.update = function() {
  */
 MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
 
-    UIUtils.clearChilds("workspace-body");
+    UIUtils.clearChilds("calendar-body");
     var currentDate = new Date(startDate);
     while (currentDate <= endDate) {
 
 	var day = this.makeDay(currentDate);
-	UIUtils.getElement("workspace-body").appendChild(day);
+	UIUtils.getElement("calendar-body").appendChild(day);
 	currentDate.setDate(currentDate.getDate() + 1);
     }
 }

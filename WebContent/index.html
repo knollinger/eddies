@@ -1,24 +1,37 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Eddie-Crashpaddy - Onlinestatus</title>
 <link rel="stylesheet" href="styles.css">
+
+<script>
+
+	function init() {
+	    
+	}
+</script>
 </head>
 
-<body onload="javascript:MainView.init();">
-    <div class="workspace">
-        <div class="workspace-header">
-            <div class="workspace-header-toolbar"></div>
-            <div class="workspace-header-title">Eddie Crashpaddy</div>
-        </div>
-        <div id="workspace-body"></div>
-        <div id="workspace-footer">
-            <div id="calendar-go-back" class="calendar-navi-button" title="Eine Woche zur&uuml;ck"></div>
-            <div id="calendar-title" class="calendar-navi-title">test</div>
-            <div id="calendar-go-fore" class="calendar-navi-button" title="Eine Woche vorw&auml;rts"></div>
-        </div>
-    </div>
+<body onload="javascript:new MainViewCalendar();">
+	<div class="workspace">
+		<div class="workspace-title">
+			<div>
+				<img id="main-view-menu-icon" class="main-menu-icon" src="gui/images/navigation-menu.svg">
+				<div id="main-menu-content" class="main-menu-content hidden" tabIndex="0">
+					<div id="main-menu-login"  class="main-menu-item">Anmelden</div>
+					<div id="main-menu-logout" class="main-menu-item">Abmelden</div>
+					<div id="main-menu-change-pwd" class="main-menu-item">Kennwort ändern</div>
+					<div id="main-menu-admin" class="main-menu-item">zum administrativen Bereich</div>
+					
+				</div>
+			</div>
+			Eddie Crashpaddy
+		</div>
+		<div class="workspace-header"></div>
+		<div id="workspace-body"></div>
+	</div>
 </body>
 
 <script type="text/javascript" src="gui/utils/uiutils.js"></script>
@@ -26,7 +39,11 @@
 <script type="text/javascript" src="gui/utils/model.js"></script>
 <script type="text/javascript" src="gui/utils/servicecaller.js"></script>
 <script type="text/javascript" src="gui/utils/xmlutils.js"></script>
-<script type="text/javascript" src="gui/widgets/busy_indicator.js"></script>
-<script type="text/javascript" src="gui/main_view.js"></script>
+<script type="text/javascript" src="gui/busy_indicator.js"></script>
+
+<script type="text/javascript" src="gui/workspace.js"></script>
+<script type="text/javascript" src="gui/session/session_manager.js"></script>
+<script type="text/javascript" src="gui/session/login_view.js"></script>
+<script type="text/javascript" src="gui/main_view/calendar.js"></script>
 
 </html>
