@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `EDDIES`.`accounts` (
+CREATE TABLE `EDDIES`.`accounts` (
   `id` INT(10) NOT NULL AUTO_INCREMENT,
   `zname` VARCHAR(30) NOT NULL,
   `vname` VARCHAR(30) NOT NULL,
@@ -9,9 +9,11 @@ CREATE TABLE IF NOT EXISTS `EDDIES`.`accounts` (
   `pwdhash` CHAR(64) NOT NULL,
   PRIMARY KEY (`id`));
 
-CREATE TABLE IF NOT EXISTS `EDDIES`.`cal_entries` (
+CREATE TABLE `EDDIES`.`cal_entries` (
   `id` INT(10) NOT NULL AUTO_INCREMENT,
   `date` DATE NOT NULL,
   `begin` TIME NOT NULL,
   `end` TIME NOT NULL,
+  `keeper` INT(10) NULL DEFAULT -1,
+  `purifier` INT(10) NULL DEFAULT -1
   PRIMARY KEY (`id`));

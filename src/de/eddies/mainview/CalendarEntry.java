@@ -27,5 +27,11 @@ public class CalendarEntry implements IJAXBObject
     
     @XmlElement(name="end")
     @XmlJavaTypeAdapter(value=SQLTimeXMLAdapter.class)
-    public Time end;    
+    public Time end; 
+    
+    @XmlElement(name="keeper")
+    public int keeper = -1;
+    
+    @XmlElement(name="purifier")
+    public int purifier = -1;
 }

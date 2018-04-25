@@ -90,6 +90,69 @@ label {
 	cursor: default;
 }
 
+/*---------------------------------------------------------------------------*/
+/**
+ * all about the grid
+ */
+.grid {
+	overflow: auto;
+}
+
+.grid-row {
+	/*	margin-bottom: 10px; */
+	
+}
+
+.grid-row-0 {
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
+}
+
+.grid-row-1 {
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+}
+
+.grid-row-2 {
+	-webkit-flex: 2;
+	-moz-flex: 2;
+	-ms-flex: 2;
+	flex: 2;
+}
+
+.grid-row:before, .grid-row:after {
+	content: ' ';
+	display: table;
+	clear: both;
+}
+
+[class*='grid-col-'] {
+	float: left;
+	margin-right: 5px !important;
+	margin-bottom: 10px !important;
+}
+
+.grid-col-1 {
+	width: calc(50% - 5px) !important;
+}
+
+.grid-col-2 {
+	width: calc(100% - 5px) !important;
+}
+
+@media only screen and (max-width: 800px) {
+	.grid-col-1 {
+		width: 100% !important;
+	}
+	.grid-col-2 {
+		width: 100% !important;
+	}
+}
+
 /**
  *
  */
@@ -362,4 +425,14 @@ label {
 
 .calendar-day-closed {
 	border-left: 20px solid #ff557f;
+}
+
+/**
+ *
+ */
+.login-input-cnr {
+
+	margin-left: auto;
+	margin-right: auto;
+	width: 300px;
 }

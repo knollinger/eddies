@@ -87,7 +87,8 @@ public class LogonHandler implements IXmlServiceHandler
                 response.vname = rs.getString("vname");
                 response.mobile = rs.getString("mobile");
                 response.phone = rs.getString("phone");
-                response.email = rs.getString("email");                
+                response.email = rs.getString("email");    
+                response.role = ERole.valueOf(rs.getString("role"));
                 session.setAccountId(response.id);
                 rsp = response;      
             }
@@ -143,5 +144,8 @@ public class LogonHandler implements IXmlServiceHandler
 
         @XmlElement(name = "email")
         public String email;
+        
+        @XmlElement(name="role")
+        public ERole role;
     }
 }

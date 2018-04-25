@@ -35,7 +35,6 @@ public class SessionWrapper
     public void invalidate()
     {
         this.httpSession.invalidate();
-        this.setAccountId(null);
     }
 
     /**
