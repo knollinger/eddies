@@ -7,24 +7,32 @@
 <link rel="stylesheet" href="styles.css">
 
 <script>
+    function init() {
 
-	function init() {
-	    
-	}
+	SessionManager.checkSessionState(function() {
+	    new MainViewCalendar();
+	}, function() {
+	    new MainViewCalendar();
+	});
+    }
 </script>
 </head>
 
-<body onload="javascript:new MainViewCalendar();">
+<body onload="javascript:init();">
 	<div class="workspace">
 		<div class="workspace-title">
 			<div>
-				<img id="main-view-menu-icon" class="main-menu-icon" src="gui/images/navigation-menu.svg">
-				<div id="main-menu-content" class="main-menu-content hidden" tabIndex="0">
-					<div id="main-menu-login"  class="main-menu-item">Anmelden</div>
+				<img id="main-view-menu-icon" class="main-menu-icon"
+					src="gui/images/navigation-menu.svg">
+				<div id="main-menu-content" class="main-menu-content hidden"
+					tabIndex="0">
+					<div id="main-menu-login" class="main-menu-item">Anmelden</div>
 					<div id="main-menu-logout" class="main-menu-item">Abmelden</div>
-					<div id="main-menu-change-pwd" class="main-menu-item">Kennwort ändern</div>
-					<div id="main-menu-admin" class="main-menu-item">zum administrativen Bereich</div>
-					
+					<div id="main-menu-change-pwd" class="main-menu-item">Kennwort
+						ändern</div>
+					<div id="main-menu-admin" class="main-menu-item">Zum
+						administrativen Bereich</div>
+
 				</div>
 			</div>
 			Eddie Crashpaddy
@@ -45,5 +53,6 @@
 <script type="text/javascript" src="gui/session/session_manager.js"></script>
 <script type="text/javascript" src="gui/session/login_view.js"></script>
 <script type="text/javascript" src="gui/main_view/calendar.js"></script>
+<script type="text/javascript" src="gui/admin/admin_view.js"></script>
 
 </html>

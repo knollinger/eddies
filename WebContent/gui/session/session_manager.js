@@ -3,17 +3,13 @@
  */
 var SessionManager = (function() {
 
-    var uid = -1;
-    zname = null;
-    vname = null;
+    var model = null;
 
     /**
      * 
      */
     var handleLoggedOutResponse = function(rsp, onLoggedOutCallback) {
-	uid = -1;
-	zname = null;
-	vname = null;
+	model = null;
 	if (onLoggedOutCallback) {
 	    onLoggedOutCallback();
 	}
@@ -23,9 +19,8 @@ var SessionManager = (function() {
      * 
      */
     var handleLoggedOnResponse = function(rsp, onLoggedOnCallback) {
-	uid = -1;
-	zname = null;
-	vname = null;
+	
+	model = new Model(rsp);
 	if (onLoggedOnCallback) {
 	    onLoggedOnCallback();
 	}
@@ -40,6 +35,7 @@ var SessionManager = (function() {
 
 	    var caller = new ServiceCaller();
 	    caller.invokeService(XmlUtils.createDocument("logout-request"));
+	    window.location = "index.html";
 	},
 
 	/**
@@ -63,6 +59,10 @@ var SessionManager = (function() {
 
 	    var req = XmlUtils.createDocument("get-session-state-request");
 	    caller.invokeService(req);
+	},
+	
+	getSessionModel : function() {
+	    return model;
 	}
     }
 })();

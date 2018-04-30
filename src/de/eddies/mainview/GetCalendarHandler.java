@@ -75,11 +75,11 @@ public class GetCalendarHandler implements IXmlServiceHandler
         try
         {
             conn = ConnectionPool.getConnection();
-            stmt = conn.prepareStatement("select * from cal_entries where date between ? and ? order by date");
+            stmt = conn.prepareStatement("select * from cal_entries where date between ? and ? order by date, begin");
             stmt.setDate(1, req.from);
             stmt.setDate(2, req.until);
             rs = stmt.executeQuery();
-            
+
             Response rsp = new Response();
             while (rs.next())
             {
@@ -87,7 +87,9 @@ public class GetCalendarHandler implements IXmlServiceHandler
                 c.id = rs.getInt("id");
                 c.date = rs.getDate("date");
                 c.begin = rs.getTime("begin");
-                c.end = rs.getTime("end");                
+                c.end = rs.getTime("end");
+                c.keeper = rs.getInt("keeper");
+                c.purifier = rs.getInt("purifier");
                 rsp.calEntries.add(c);
             }
             result = rsp;

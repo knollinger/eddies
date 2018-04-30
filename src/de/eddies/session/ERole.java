@@ -13,10 +13,5 @@ public enum ERole
     /**
      * 
      */
-    KEEPER,
-    
-    /**
-     * 
-     */
-    PURIFIER    
+    MEMBER
 }

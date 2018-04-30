@@ -6,11 +6,11 @@
 var MainViewCalendar = function() {
 
     var self = this;
-    WorkSpaceFrame.call(this, "gui/main_view/content.html", function(){
-	
+    WorkSpaceFrame.call(this, "gui/main_view/content.html", function() {
+
 	self.currentDate = new Date();
 	self.setupUI();
-	self.update();	
+	self.update();
     });
 }
 MainViewCalendar.prototype = Object.create(WorkSpaceFrame.prototype)
@@ -59,8 +59,10 @@ MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
     var currentDate = new Date(startDate);
     while (currentDate <= endDate) {
 
-	var day = this.makeDay(currentDate);
-	UIUtils.getElement("calendar-body").appendChild(day);
+	// var day = this.makeDay(currentDate);
+	// UIUtils.getElement("calendar-body").appendChild(day);
+	// currentDate.setDate(currentDate.getDate() + 1);
+	this.makeDay(currentDate);
 	currentDate.setDate(currentDate.getDate() + 1);
     }
 }
@@ -123,24 +125,51 @@ MainViewCalendar.prototype.makeDay = function(date) {
     title.textContent = DateTimeUtils.formatDate(date, "{D} - {dd}.{mm}.{yyyy}");
     content.appendChild(title);
 
-    // TODO: den Filler kannten mer noch brauchen...
     var filler = document.createElement("div");
     filler.className = "calendar-day-filler";
     content.appendChild(filler);
 
-    var baseXPath = "/get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "']";
-    var begin = this.model.getValue(baseXPath + "/begin");
-    var end = this.model.getValue(baseXPath + "/end");
-    if (begin && end) {
-
-	content.className += " calendar-day-open";
-
-	var time = document.createElement("div");
-	time.className = "calendar-day-time";
-	time.textContent += begin + " - " + end;
-	content.appendChild(time);
-    } else {
+    var baseXPath = "/get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and keeper!= '0']";
+    var entries = this.model.evaluateXPath(baseXPath);
+    if (entries.length == 0) {
 	content.className += " calendar-day-closed";
+    } else {
+	content.className += " calendar-day-open";
+	content.appendChild(this.makeOpeningTimeIndicator(baseXPath));
     }
-    return day;
+    UIUtils.getElement("calendar-body").appendChild(day);
+
+    if (SessionManager.getSessionModel()) {
+
+	var expand = this.createPropertiesMenu(baseXPath);
+	content.appendChild(expand);
+    }
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.makeOpeningTimeIndicator = function(xpath) {
+
+    var allFrom = this.model.evaluateXPath(xpath + "/begin");
+    var allUntil = this.model.evaluateXPath(xpath + "/end");
+
+    var begin = allFrom[0].textContent;
+    var end = allUntil[allUntil.length - 1].textContent;
+
+    var time = document.createElement("div");
+    time.className = "calendar-day-time";
+    time.textContent = begin + " - " + end;
+
+    return time;
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.createPropertiesMenu = function(xpath) {
+
+    var menu = document.createElement("div");
+    menu.className = "calendar-day-propmenu";
+    return menu;
 }
