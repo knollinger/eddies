@@ -53,12 +53,11 @@ public class GetMemberImageHandler implements IGetDocServiceHandler
             int memberId = this.extractMemberId(req);
 
             conn = ConnectionPool.getConnection();
-            stmt = conn.prepareStatement("select image, image_type from accounts where id=?");
+            stmt = conn.prepareStatement("select sex, image, image_type from accounts where id=?");
             stmt.setInt(1, memberId);
             rs = stmt.executeQuery();
             if (rs.next())
             {
-
                 String mimeType = rs.getString("image_type");
                 Blob blob = rs.getBlob("image");
                 if (mimeType != null && blob != null)
@@ -73,12 +72,13 @@ public class GetMemberImageHandler implements IGetDocServiceHandler
                 }
                 else
                 {
-                    this.sendDefaultImage(rsp);
+                    ESex sex = ESex.valueOf(rs.getString("sex"));
+                    this.sendDefaultImage(rsp, sex);
                 }
             }
             else
             {
-                this.sendDefaultImage(rsp);
+                this.sendDefaultImage(rsp, ESex.U);
             }
         }
         catch (Exception e)
@@ -112,9 +112,25 @@ public class GetMemberImageHandler implements IGetDocServiceHandler
     * @param sex
     * @param rsp
     */
-    private void sendDefaultImage(HttpServletResponse rsp)
+    private void sendDefaultImage(HttpServletResponse rsp, ESex sex)
     {
-        rsp.setHeader("Location", "../gui/images/default-avatar.svg");
+        String img;
+        switch (sex)
+        {
+            case F :
+                img = "../gui/images/default-avatar-female.svg";
+                break;
+
+            case M :
+                img = "../gui/images/default-avatar-male.svg";
+                break;
+
+            default :
+                img = "../gui/images/default-avatar-unknown.svg";
+                break;
+
+        }
+        rsp.setHeader("Location", img);
         rsp.setStatus(HttpServletResponse.SC_FOUND);
     }
 }

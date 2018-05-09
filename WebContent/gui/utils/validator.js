@@ -77,6 +77,7 @@ Validator.prototype.assertNotEmpty = function(elem) {
     }
     
     if (empty) {
+	elem.focus();
 	new ToolTip(elem, ToolTip.warningIcon, "Dieses Feld darf nicht leer sein.")
     }
     return !empty;
@@ -122,6 +123,7 @@ Validator.prototype.assertIsNumber = function(elem) {
 
     var result = parseInt(elem.value) != NaN;
     if (!result) {
+	elem.focus();
 	new ToolTip(elem, ToolTip.warningIcon, "Dieses Feld muss eine Zahl beinhalten.")
     }
     return result;
@@ -135,6 +137,7 @@ Validator.prototype.assertIsTime = function(elem) {
 
     var result = DateTimeUtils.isTime(elem.value);
     if (!result) {
+	elem.focus();
 	new ToolTip(elem, ToolTip.warningIcon, "Dieses Feld muss eine Uhrzeit beinhalten.");
     }
     return result;
@@ -148,6 +151,7 @@ Validator.prototype.assertIsDate = function(elem) {
 
     var result = DateTimeUtils.isDate(elem.value);
     if (!result) {
+	elem.focus();
 	new ToolTip(elem, ToolTip.warningIcon, "Dieses Feld muss ein Datum beinhalten.");
     }
     return result;
@@ -162,6 +166,7 @@ Validator.prototype.assertIsZipCode = function(elem) {
     var n = parseInt(elem.value);
     var result = (n != NaN && n > 0 && n < 100000);
     if (!result) {
+	elem.focus();
 	new ToolTip(elem, ToolTip.warningIcon, "Dieses Feld muss eine Postleitzahl beinhalten.");
     }
     return result;

@@ -5,27 +5,6 @@ var SessionManager = (function() {
 
     var model = null;
 
-    /**
-     * 
-     */
-    var handleLoggedOutResponse = function(rsp, onLoggedOutCallback) {
-	model = null;
-	if (onLoggedOutCallback) {
-	    onLoggedOutCallback();
-	}
-    }
-
-    /**
-     * 
-     */
-    var handleLoggedOnResponse = function(rsp, onLoggedOnCallback) {
-	
-	model = new Model(rsp);
-	if (onLoggedOnCallback) {
-	    onLoggedOnCallback();
-	}
-    }
-
     return {
 
 	/**
@@ -33,8 +12,8 @@ var SessionManager = (function() {
 	 */
 	logout : function() {
 
-	    var caller = new ServiceCaller();
-	    caller.invokeService(XmlUtils.createDocument("logout-request"));
+	    model = null;
+	    new ServiceCaller().invokeService(XmlUtils.createDocument("logout-request"));
 	    window.location = "index.html";
 	},
 
@@ -48,11 +27,17 @@ var SessionManager = (function() {
 	    caller.onSuccess = function(rsp) {
 		switch (rsp.documentElement.nodeName) {
 		case 'get-session-state-loggedin-response':
-		    handleLoggedOnResponse(rsp, onLoggedIn);
+		    model = new Model(rsp);
+		    if (onLoggedIn) {
+			onLoggedIn();
+		    }
 		    break;
 
 		case 'get-session-state-loggedout-response':
-		    handleLoggedOutResponse(rsp, onLoggedOut);
+		    model = null;
+		    if (onLoggedOut) {
+			onLoggedOut();
+		    }
 		    break;
 		}
 	    }
@@ -60,9 +45,27 @@ var SessionManager = (function() {
 	    var req = XmlUtils.createDocument("get-session-state-request");
 	    caller.invokeService(req);
 	},
-	
-	getSessionModel : function() {
-	    return model;
+
+	/**
+	 * 
+	 */
+	hasSession : function() {
+	    return model != null;
+	},
+
+	/**
+	 * @return true, wenn der aktuell angemeldete Benutzer
+	 *         Administrations-Berechtigungen hat
+	 */
+	isAdmin : function() {
+	    return model.getValue("//get-session-state-loggedin-response/role") === "ADMIN";
+	},
+
+	/**
+	 * @return true, wenn die übergebene memberId meiner eigenen entspricht.
+	 */
+	isMee : function(memberId) {
+	    return model.getValue("//get-session-state-loggedin-response/id") == memberId;
 	}
     }
 })();

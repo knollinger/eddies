@@ -71,7 +71,7 @@ public class LogonHandler implements IXmlServiceHandler
             String pwd = PasswordUtil.hashPassword(req.password);
 
             conn = ConnectionPool.getConnection();
-            stmt = conn.prepareStatement("select * from accounts where email=? and pwdhash=?");
+            stmt = conn.prepareStatement("select id from accounts where email=? and pwdhash=?");
             stmt.setString(1, email);
             stmt.setString(2, pwd);
             rs = stmt.executeQuery();
@@ -81,21 +81,13 @@ public class LogonHandler implements IXmlServiceHandler
             }
             else
             {
-                Response response = new Response();
-                response.id = rs.getInt("id");
-                response.zname = rs.getString("zname");
-                response.vname = rs.getString("vname");
-                response.mobile = rs.getString("mobile");
-                response.phone = rs.getString("phone");
-                response.email = rs.getString("email");    
-                response.role = ERole.valueOf(rs.getString("role"));
-                session.setAccountId(response.id);
-                rsp = response;      
+                session.setAccountId(rs.getInt("id"));
+                rsp = new Response();      
             }
         }
         catch (Exception e)
         {
-            rsp = new ErrorResponse("");
+            rsp = new ErrorResponse("WTF");
         }
         finally
         {
@@ -127,25 +119,5 @@ public class LogonHandler implements IXmlServiceHandler
     @XmlType(name = "LogonHandler.Response")
     public static class Response implements IJAXBObject
     {
-        @XmlElement(name = "id")
-        public Integer id;
-
-        @XmlElement(name = "zname")
-        public String zname;
-
-        @XmlElement(name = "vname")
-        public String vname;
-
-        @XmlElement(name = "phone")
-        public String phone;
-
-        @XmlElement(name = "mobile")
-        public String mobile;
-
-        @XmlElement(name = "email")
-        public String email;
-        
-        @XmlElement(name="role")
-        public ERole role;
     }
 }

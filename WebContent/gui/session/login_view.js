@@ -45,10 +45,7 @@ LoginView.prototype.login = function() {
     caller.onSuccess = function(rsp) {
 	switch (rsp.documentElement.nodeName) {
 	case "logon-response":
-	    SessionManager.uid = rsp.getElementsByTagName("id")[0].textContent;
-	    SessionManager.zname = rsp.getElementsByTagName("vname")[0].textContent;
-	    SessionManager.vname = rsp.getElementsByTagName("zname")[0].textContent;
-	    self.close();
+	    window.location = "index.html";
 	    break;
 
 	case "error-response":

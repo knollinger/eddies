@@ -3,8 +3,9 @@
  */
 var WorkSpace = (function() {
 
-    var wsBody = document.getElementById("workspace-body");
-    var menuIcon = document.getElementById("main-view-menu-icon");
+    wsBody = document.getElementById("workspace-body");
+    menuIcon = document.getElementById("main-view-menu-icon");
+
     menuIcon.addEventListener("click", function() {
 	MainMenu.show();
     });
@@ -65,18 +66,19 @@ WorkSpaceFrame.prototype.createFooter = function() {
 
     var self = this;
     if (this.hasCloseButton()) {
-	footer.appendChild(this.createFooterBtn("gui/images/go-back.svg", function() {
+	this.closeButton = this.createFooterBtn("gui/images/go-back.svg", function() {
 	    self.close();
-	}));
+	});
+	footer.appendChild(this.closeButton);
     }
     if (this.hasSaveButton()) {
-	footer.appendChild(this.createFooterBtn("gui/images/save.svg", function() {
+	this.saveButton = this.createFooterBtn("gui/images/save.svg", function() {
 	    self.save();
-	}));
+	});
+	footer.appendChild(this.saveButton);
     }
     return footer;
 }
-
 
 /**
  * 
@@ -105,6 +107,21 @@ WorkSpaceFrame.prototype.hasSaveButton = function() {
 /**
  * 
  */
+WorkSpaceFrame.prototype.enableSaveButton = function(val) {
+
+    if (this.saveButton) {
+
+	if (val === false) {
+	    UIUtils.addClass(this.saveButton, "hidden");
+	} else {
+	    UIUtils.removeClass(this.saveButton, "hidden");
+	}
+    }
+}
+
+/**
+ * 
+ */
 WorkSpaceFrame.prototype.createFooterBtn = function(imgUrl, onclick) {
 
     var btn = document.createElement("div");
@@ -123,7 +140,7 @@ WorkSpaceFrame.prototype.createFooterBtn = function(imgUrl, onclick) {
  */
 WorkSpaceFrame.prototype.getAnnotations = function() {
 
-    result = {};
+    var result = {};
 
     var annotations = this.body.getElementsByClassName("annotations")[0];
     if (annotations) {
@@ -137,10 +154,24 @@ WorkSpaceFrame.prototype.getAnnotations = function() {
  */
 WorkSpaceFrame.prototype.close = function() {
 
-    if(this.onClose) {
+    if (this.onClose) {
 	this.onClose();
     }
     UIUtils.removeElement(this.frame);
+}
+
+/**
+ * 
+ */
+WorkSpaceFrame.prototype.save = function() {
+
+    var val = new Validator();
+    if (val.validate(this.body)) {
+	if (this.onSave) {
+	    this.onSave();
+	}
+	UIUtils.removeElement(this.frame);
+    }
 }
 
 /**

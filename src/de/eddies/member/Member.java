@@ -22,5 +22,8 @@ public class Member
     public String mobile;
     
     @XmlElement(name="email")
-    public String email;    
+    public String email;  
+    
+    @XmlElement(name="sex")
+    public ESex sex;
 }
