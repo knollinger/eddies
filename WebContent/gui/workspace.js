@@ -66,17 +66,21 @@ WorkSpaceFrame.prototype.createFooter = function() {
 
     var self = this;
     if (this.hasCloseButton()) {
-	this.closeButton = this.createFooterBtn("gui/images/go-back.svg", function() {
+	this.closeButton = new WorkSpaceActionButton("gui/images/go-back.svg", function() {
 	    self.close();
 	});
-	footer.appendChild(this.closeButton);
+	footer.appendChild(this.closeButton.ui);
     }
+    
     if (this.hasSaveButton()) {
-	this.saveButton = this.createFooterBtn("gui/images/save.svg", function() {
+	this.saveButton = new WorkSpaceActionButton("gui/images/save.svg", function() {
 	    self.save();
 	});
-	footer.appendChild(this.saveButton);
+	footer.appendChild(this.saveButton.ui);
     }
+    
+    this.toolBox = this.createToolBox();
+    footer.appendChild(this.toolBox);
     return footer;
 }
 
@@ -112,9 +116,9 @@ WorkSpaceFrame.prototype.enableSaveButton = function(val) {
     if (this.saveButton) {
 
 	if (val === false) {
-	    UIUtils.addClass(this.saveButton, "hidden");
+	    this.saveButton.hide();
 	} else {
-	    UIUtils.removeClass(this.saveButton, "hidden");
+	    this.saveButton.show();
 	}
     }
 }
@@ -122,16 +126,20 @@ WorkSpaceFrame.prototype.enableSaveButton = function(val) {
 /**
  * 
  */
-WorkSpaceFrame.prototype.createFooterBtn = function(imgUrl, onclick) {
+WorkSpaceFrame.prototype.createToolBox = function() {
 
-    var btn = document.createElement("div");
-    btn.className = "workspace-frame-action";
+    var result = document.createElement("div");
+    result.className = "workspace-frame-toolbox";
+    return result;
+}
 
-    var img = document.createElement("img");
-    img.src = imgUrl;
-    btn.appendChild(img);
+/**
+ * 
+ */
+WorkSpaceFrame.prototype.createToolButton = function(imgUrl, onclick) {
 
-    btn.addEventListener("click", onclick);
+    var btn = new WorkSpaceActionButton(imgUrl, onclick);
+    this.toolBox.appendChild(btn.ui);
     return btn;
 }
 
@@ -172,6 +180,35 @@ WorkSpaceFrame.prototype.save = function() {
 	}
 	UIUtils.removeElement(this.frame);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+var WorkSpaceActionButton = function(imgUrl, onclick) {
+    
+    this.ui = document.createElement("div");
+    this.ui.className = "workspace-frame-action";
+
+    var img = document.createElement("img");
+    img.src = imgUrl;
+    this.ui.appendChild(img);
+
+    this.ui.addEventListener("click", onclick);
+}
+
+/**
+ * 
+ */
+WorkSpaceActionButton.prototype.show = function(val) {
+
+    UIUtils.removeClass(this.ui, "hidden");
+}
+
+/**
+ * 
+ */
+WorkSpaceActionButton.prototype.hide = function(val) {
+
+    UIUtils.addClass(this.ui, "hidden");
 }
 
 /**

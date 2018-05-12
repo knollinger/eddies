@@ -121,10 +121,6 @@ MainViewCalendar.prototype.makeDay = function(date) {
     title.textContent = DateTimeUtils.formatDate(date, "{D} - {dd}.{mm}.{yyyy}");
     content.appendChild(title);
 
-    var filler = document.createElement("div");
-    filler.className = "calendar-day-filler";
-    content.appendChild(filler);
-
     var baseXPath = "/get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and keeper != '0']";
     var entries = this.model.evaluateXPath(baseXPath);
     if (entries.length == 0) {
@@ -182,12 +178,17 @@ MainViewCalendar.prototype.createPropertiesMenu = function(xpath) {
 var MainViewDetails = function(model, day) {
 
     this.model = model;
+    this.day = day;
 
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/details.html", function() {
 	self.setupTitle(day);
-	self.fillAllKeepers(day);
-	// self.fillAllPurifiers(day);
+	self.actionRemove = self.createRemoveAction();
+	var observingXPath = "//get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "']";
+	self.model.addChangeListener(observingXPath, function() {
+	    self.update();
+	});
+	self.update();
     });
 }
 MainViewDetails.prototype = Object.create(WorkSpaceFrame.prototype);
@@ -204,18 +205,73 @@ MainViewDetails.prototype.setupTitle = function(day) {
 /**
  * 
  */
-MainViewDetails.prototype.fillAllKeepers = function(day) {
+MainViewDetails.prototype.createRemoveAction = function() {
 
-    var xpath = "//get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(day, "{dd}.{mm}.{yyyy}") + "' and keeper!= '0']";
+    var btn = this.createToolButton("gui/images/trashbin.svg", function() {
+
+    });
+    btn.hide();
+    return btn;
+}
+
+/**
+ * 
+ */
+MainViewDetails.prototype.update = function() {
+
+    UIUtils.clearChilds("mainview-details-body");
+    this.fillAllKeepers();
+    // this.fillAllPurifiers(day);
+}
+
+/**
+ * 
+ */
+MainViewDetails.prototype.fillAllKeepers = function() {
+
+    var xpath = "//get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "' and keeper!= '0']";
     var allEntries = this.model.evaluateXPath(xpath);
     for (var i = 0; i < allEntries.length; i++) {
 
 	var entryXPath = XmlUtils.getXPathTo(allEntries[i]);
-	var entry = new MainViewDetailsEntry(this.model, entryXPath);
-	UIUtils.getElement("mainview-details-body").appendChild(entry.container);
+	this.fillOneKeeper(entryXPath);
     }
 }
 
+/**
+ * 
+ */
+MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
+
+    var radio = document.createElement("input");
+    radio.type = "radio";
+    radio.className = "hidden";
+    radio.name = "mainview_details_entry";
+    UIUtils.getElement("mainview-details-body").appendChild(radio);
+
+    var entry = new MainViewDetailsEntry(this.model, entryXPath);
+    var entryUI = entry.container;
+    UIUtils.getElement("mainview-details-body").appendChild(entryUI);
+
+    var self = this;
+    entryUI.addEventListener("click", function() {
+
+	// click the radio to enable the css-rule for selected entries
+	radio.click();
+
+	var memberId = self.model.getValue(entryXPath + "/keeper");
+	if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
+	    self.currEntry = entry;
+	    self.currEntryXPath = entryXPath;
+	    self.actionRemove.show();
+	} else {
+	    self.currEntry = self.currEntryXPath = null;
+	    self.actionRemove.hide();
+	}
+    });
+}
+
+/*---------------------------------------------------------------------------*/
 /**
  * 
  */
@@ -227,67 +283,80 @@ var MainViewDetailsEntry = function(model, entryXPath) {
     this.container = document.createElement("div");
     this.container.className = "details-entry-cnr";
 
-    this.img = document.createElement("img");
-    this.img.className = "details-entry-avatar";
-    this.container.appendChild(this.img);
+    var memberId = this.model.getValue(this.entryXPath + "/keeper");
+    this.container.appendChild(this.makeAvatar(memberId));
 
-    var filler = document.createElement("div");
-    filler.className = "details-content-filler";
-    this.container.appendChild(filler);
+    this.container.appendChild(this.makeNameSection(memberId));
+    this.container.appendChild(this.makeTimeSection(memberId));
+}
 
-    var content = document.createElement("div");
-    content.className = "details-content-cnr";
-    this.container.appendChild(content);
+/**
+ * 
+ */
+MainViewDetailsEntry.prototype.makeAvatar = function(memberId) {
 
-    this.nameSection = document.createElement("div"), this.nameSection.className = "details-content";
-    content.appendChild(this.nameSection);
+    var img = document.createElement("img");
+    img.className = "avatar";
+    img.src = "getDocument/memberImage/?id=" + memberId;
+    return img;
+}
 
-    this.timeSection = document.createElement("div"), this.timeSection.className = "details-content";
-    content.appendChild(this.timeSection);
+/**
+ * 
+ */
+MainViewDetailsEntry.prototype.makeNameSection = function(memberId) {
+
+    var result = document.createElement("div");
+    result.className = "details-namesection";
+
+    var isEditable = SessionManager.isAdmin() || SessionManager.isMee(memberId);
+    if (isEditable) {
+	result.className += " details-content-selectable";
+
+	var self = this;
+	result.addEventListener("click", function() {
+	    new MemberOverview(self.model, "//get-calendar-ok-rsp/members", function(id) {
+	    }, memberId);
+	});
+    }
 
     var self = this;
-    this.img.addEventListener("click", function() {
-	self.editKeeper();
-    });
-
-    this.nameSection.addEventListener("click", function() {
-	self.editKeeper();
-    });
-
-    this.model.addChangeListener(this.entryXPath, function() {
-	self.update();
-    });
-    this.update();
+    var xpath = "//get-calendar-ok-rsp/members/member[id='" + memberId + "']";
+    var fromXML = function(val) {
+	var vname = self.model.getValue(xpath + "/vname");
+	var zname = self.model.getValue(xpath + "/zname");
+	return vname + " " + zname;
+    }
+    this.model.createAttributeBinding(result, "textContent", xpath, null, null, fromXML);
+    return result;
 }
 
 /**
  * 
  */
-MainViewDetailsEntry.prototype.update = function() {
+MainViewDetailsEntry.prototype.makeTimeSection = function(memberId) {
 
-    // image
-    var memberId = this.model.getValue(this.entryXPath + "/keeper");
-    this.img.src = "getDocument/memberImage?id=" + memberId;
-
-    // Name
-    var vname = this.model.getValue("//get-calendar-ok-rsp/members/member[id='" + memberId + "']/vname");
-    var zname = this.model.getValue("//get-calendar-ok-rsp/members/member[id='" + memberId + "']/zname");
-    this.nameSection.textContent = vname + " " + zname;
+    var result = document.createElement("div");
+    result.className = "details-timesection";
 
     // zeiten
-    var from = this.model.getValue(this.entryXPath + "/begin");
-    var end = this.model.getValue(this.entryXPath + "/end");
-    this.timeSection.textContent = from + "-" + end;
-}
+    var from = document.createElement("input");
+    from.className = "details-content-time";
+    this.model.createValueBinding(from, this.entryXPath + "/begin");
+    result.appendChild(from);
 
-/**
- * 
- */
-MainViewDetailsEntry.prototype.editKeeper = function() {
+    var fill = document.createElement("span");
+    fill.textContent = " - ";
+    result.appendChild(fill);
 
-    // // TODO: MemberFinder!
-    // this.model.setValue(this.entryXPath + "/keeper", "2");
-    new MemberOverview(this.model, "//get-calendar-ok-rsp/members", function() {
-	
-    });
+    var end = document.createElement("input");
+    end.className = "details-content-time";
+    this.model.createValueBinding(end, this.entryXPath + "/end");
+    result.appendChild(end);
+
+    if (!SessionManager.isAdmin() && !SessionManager.isMee(memberId)) {
+	from.disabled = end.disabled = true;
+    }
+
+    return result;
 }

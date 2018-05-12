@@ -2,7 +2,7 @@
  * Zeigt alle Member an, welche im angegebenen Model unter dem durch
  * memberCnrXPath referenzierten XML-Container enthalten sind
  */
-var MemberOverview = function(model, memberCnrXPath, onselect) {
+var MemberOverview = function(model, memberCnrXPath, onselect, memberId) {
 
     this.model = model;
     this.memberCnrXPath = memberCnrXPath;
@@ -10,7 +10,7 @@ var MemberOverview = function(model, memberCnrXPath, onselect) {
     var self = this;
     WorkSpaceFrame.call(this, "gui/member_view/member_overview.html", function() {
 	self.enableSaveButton(false);
-	self.fillTable();
+	self.fillTable(memberId);
 	self.model.addChangeListener(self.memberCnrXPath, function() {
 	    self.enableSaveButton();
 	});
@@ -21,7 +21,7 @@ MemberOverview.prototype = Object.create(WorkSpaceFrame.prototype);
 /**
  * 
  */
-MemberOverview.prototype.fillTable = function() {
+MemberOverview.prototype.fillTable = function(memberId) {
 
     var allMember = this.model.evaluateXPath(this.memberCnrXPath + "/member");
     for (var i = 0; i < allMember.length; i++) {
@@ -29,6 +29,10 @@ MemberOverview.prototype.fillTable = function() {
 	var memberXPath = XmlUtils.getXPathTo(allMember[i]);
 	var entry = new MemberOverviewEntry(this.model, memberXPath);
 	UIUtils.getElement("member-overview-body").appendChild(entry.container);
+
+	if (this.model.getValue(memberXPath + "/id") == memberId) {
+	    entry.select();
+	}
     }
 }
 
@@ -47,16 +51,72 @@ var MemberOverviewEntry = function(model, memberXPath) {
     this.container = document.createElement("div");
     this.container.className = "member-overview-entry";
 
-    var radio = this.createRadio();
-    this.container.appendChild(radio);
+    var titleRow = this.createTitleRow();
+    this.container.appendChild(titleRow);
+    
+    var nameRow = this.createNameRow();    
+    this.container.appendChild(nameRow);  
+    
+    var phoneRow = this.createPhoneRow();
+    this.container.appendChild(phoneRow);    
+    
+    var mailRow = this.createMailRow();
+    this.container.appendChild(mailRow);
 
-    this.container.appendChild(this.createNameRow());
-    this.container.appendChild(this.createPhoneRow());
-    this.container.appendChild(this.createMailRow());
-
-    this.container.addEventListener("click", function() {
-	radio.click();
+    var self = this;
+    titleRow.addEventListener("click", function() {
+//	self.expCol.click();
+	self.radio.click();
     });
+    
+    this.expCol.addEventListener("click", function(evt) {
+	evt.stopPropagation();
+	if(self.expCol.checked) {
+	    UIUtils.removeClass(nameRow, "hidden");
+	    UIUtils.removeClass(phoneRow, "hidden");
+	    UIUtils.removeClass(mailRow, "hidden");
+	    UIUtils.addClass(this.label, "hidden");
+	}
+	else {
+	    UIUtils.addClass(nameRow, "hidden");
+	    UIUtils.addClass(phoneRow, "hidden");
+	    UIUtils.addClass(mailRow, "hidden");	    
+	    UIUtils.removeClass(this.label, "hidden");
+	}
+    });
+}
+
+/**
+ * 
+ */
+MemberOverviewEntry.prototype.createTitleRow = function() {
+    
+    var result = document.createElement("div");
+    result.style.display = "flex";
+    result.style.alignItems = "center";
+    result.style.marginBottom = "10px";
+    
+    this.radio = this.createRadio();
+    var subCnr = document.createElement("div");
+    subCnr.marginTop = "10px";
+    subCnr.style.flex = "0 auto";
+    subCnr.appendChild(this.radio);
+    result.appendChild(subCnr);
+    
+    this.label = this.createLabel();    
+    subCnr = document.createElement("div");
+    subCnr.style.flex = "1";
+    subCnr.appendChild(this.label);
+    result.appendChild(subCnr);
+    
+    this.expCol = this.createExpandCollapse();
+    subCnr = document.createElement("div");
+    subCnr.style.flex = "0 auto";
+    subCnr.appendChild(this.expCol);
+    result.appendChild(subCnr);
+    
+    return result;
+    
 }
 
 /*
@@ -80,15 +140,47 @@ MemberOverviewEntry.prototype.createRadio = function() {
  * 
  * 
  */
+MemberOverviewEntry.prototype.createLabel = function() {
+
+    var result = document.createElement("span");
+    result.style.paddingLeft = "10px";
+    result.style.fontWeight ="600";
+    var self = this;
+    var fromXML = function(val) {
+	var vname = self.model.getValue(self.memberXPath + "/vname");
+	var zname = self.model.getValue(self.memberXPath + "/zname");
+	return vname + " " + zname;
+    }
+    this.model.createAttributeBinding(result, "textContent", self.memberXPath, null, null, fromXML);
+    return result;    
+    return result;
+}
+
+/*
+ * 
+ * 
+ */
+MemberOverviewEntry.prototype.createExpandCollapse = function() {
+
+    var result = document.createElement("input");
+    result.type = "checkbox";
+    result.className = "expand-button";
+
+    return result;
+}
+
+/*
+ * 
+ * 
+ */
 MemberOverviewEntry.prototype.createNameRow = function() {
 
     var row = document.createElement("div");
-    row.className = "grid-row-0";
+    row.className = "grid-row-0 hidden";
 
     row.appendChild(this.makeField(this.memberXPath + "/zname", "grid-col-1", "mandatory", "Name"));
     row.appendChild(this.makeField(this.memberXPath + "/vname", "grid-col-1", "mandatory", "Vorname"));
-
-
+    
     return row;
 }
 
@@ -99,7 +191,7 @@ MemberOverviewEntry.prototype.createNameRow = function() {
 MemberOverviewEntry.prototype.createPhoneRow = function() {
 
     var row = document.createElement("div");
-    row.className = "grid-row-0";
+    row.className = "grid-row-0 hidden";
 
     row.appendChild(this.makeField(this.memberXPath + "/mobile", "grid-col-1", "mandatory", "Mobile-Nummer"));
     row.appendChild(this.makeField(this.memberXPath + "/phone", "grid-col-1", null, "Festnetz"));
@@ -114,10 +206,9 @@ MemberOverviewEntry.prototype.createPhoneRow = function() {
 MemberOverviewEntry.prototype.createMailRow = function() {
 
     var row = document.createElement("div");
-    row.className = "grid-row-0";
+    row.className = "grid-row-0 hidden";
 
     row.appendChild(this.makeField(this.memberXPath + "/email", "grid-col-2", "mandatory", "Email"));
-
 
     return row;
 }
@@ -129,16 +220,24 @@ MemberOverviewEntry.prototype.createMailRow = function() {
  */
 MemberOverviewEntry.prototype.makeField = function(xpath, gridClasses, editClasses, title) {
 
-    var result = null;
-    if (this.isEditable) {
-	result = document.createElement("input");
-	result.title = result.placeholder = title;
-	this.model.createValueBinding(result, xpath, "input");	
-	UIUtils.addClass(result, editClasses);
-    } else {
-	result = document.createElement("span");
-	this.model.createAttributeBinding(result, "textContent", xpath, "input");
-    }
+    var result = document.createElement("input");
+    result.title = result.placeholder = title;
+    this.model.createValueBinding(result, xpath, "input");
     UIUtils.addClass(result, gridClasses);
+    if(this.isEditable) {
+	UIUtils.addClass(result, editClasses);	
+    }
+    else {
+	result.disabled = true;
+    }
     return result;
+}
+
+/*
+ * 
+ */
+MemberOverviewEntry.prototype.select = function() {
+
+    this.radio.click();
+    this.radio.focus();
 }

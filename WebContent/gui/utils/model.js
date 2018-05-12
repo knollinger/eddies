@@ -27,10 +27,60 @@ Model.prototype.getDocument = function() {
 /**
  * Convinience-Methode, um ein AttributeBinding mit dem Value eines HtmlTags zu
  * erzeugen
+ * 
+ * @param htmlTag
+ * @param xPath
+ * @param eventName
+ *                optional, wenn nicht angegeben wird ein defaultEventName
+ *                verwendet. Siehe getHtmlEventType *
+ * @param toXml
+ *                optional. Wenn angegeben wird die FUnktion mit dem inhalt des
+ *                html aufgerufen und das ergebniss in die xmlNode gestellt.
+ *                Anderenfalls wird der html-value direkt in das xml gestellt
+ * @param fromXml
+ *                optional. analog toXml, nur in der gegenrichting
+ * 
  */
-Model.prototype.createValueBinding = function(htmlTag, xPath) {
+Model.prototype.createValueBinding = function(htmlTag, xPath, eventName, toXml, fromXml) {
 
-    this.createAttributeBinding(htmlTag, "value", xPath);
+    this.createAttributeBinding(htmlTag, "value", xPath, eventName, toXml, fromXml);
+}
+
+/**
+ * Convinience-Methode, um ein ValueBinding mit dem Value eines Currency-HtmlTags zu
+ * erzeugen
+ * 
+ * @param htmlTag
+ * @param xPath
+ * @param eventName
+ *                optional, wenn nicht angegeben wird ein defaultEventName
+ *                verwendet. Siehe getHtmlEventType *
+ */
+Model.prototype.createCurrencyValueBinding = function(htmlTag, xPath, eventName) {
+
+    this.createCurrencyAttributeBinding(htmlTag, "value", xPath, eventName);
+}
+
+/**
+ * Convinience-Methode, um ein ValueBinding mit dem Value eines Currency-HtmlTags zu
+ * erzeugen
+ * 
+ * @param htmlTag
+ * @param xPath
+ * @param eventName
+ *                optional, wenn nicht angegeben wird ein defaultEventName
+ *                verwendet. Siehe getHtmlEventType *
+ */
+Model.prototype.createCurrencyAttributeBinding = function(htmlTag, attr, xPath, eventName) {
+
+    var toXml = function(val) {
+	return CurrencyUtils.parseCurrency(val);
+    }
+    var fromXml = function(val) {
+	return CurrencyUtils.formatCurrency(val);
+    }
+
+    this.createAttributeBinding(htmlTag, attr, xPath, eventName, toXml, fromXml);
 }
 
 /**
@@ -40,33 +90,47 @@ Model.prototype.createValueBinding = function(htmlTag, xPath) {
  * Html-Objekt gesetzt.
  * 
  * Sollte sich das Attribute ändern, so wird der XmlNode geändert. In diesem
- * Fall feuert die XmlNode ein Change-Event. 
+ * Fall feuert die XmlNode ein Change-Event.
  * 
- * Ändert sich der XmlValue, so wird
- * das Attribute des HtmlTags geändert
+ * Ändert sich der XmlValue, so wird das Attribute des HtmlTags geändert
  * 
  * @param htmlTag
+ * @attribute das zu bindende Attribute
  * @param xPath
+ * @param eventName
+ *                optional, wenn nicht angegeben wird ein defaultEventName
+ *                verwendet. Siehe getHtmlEventType
+ * @param toXml
+ *                optional. Wenn angegeben wird die FUnktion mit dem inhalt des
+ *                html aufgerufen und das ergebniss in die xmlNode gestellt.
+ *                Anderenfalls wird der html-value direkt in das xml gestellt
+ * @param fromXml
+ *                optional. analog toXml, nur in der gegenrichting
  */
 
-Model.prototype.createAttributeBinding = function(htmlTag, attribute, xPath) {
+Model.prototype.createAttributeBinding = function(htmlTag, attribute, xPath, eventName, toXml, fromXml) {
 
     var self = this;
     var xml = XmlUtils.evaluateXPath(this.xmlDocument, xPath);
-    if (xml.length != 0) {
+    if (xml.length == 0) {
+	console.log("xpath '" + xPath + "' not found. binding will not work.");
+    } else {
 
 	xml = xml[0];
 	var html = UIUtils.getElement(htmlTag);
-	if (html) {
+	if (!html) {
+	    console.log("html tag '" + html + "' not found. binding will not work.");
+	} else {
 
-	    html[attribute] = xml.textContent;
-	    var evtName = this.getHtmlEventType(html);
+	    html[attribute] = (fromXml) ? fromXml(xml.textContent) : xml.textContent;
+	    var evtName = eventName || this.getHtmlEventType(html);
 	    if (evtName) {
 
 		html.addEventListener(evtName, function() {
 
-		    if (xml.textContent != html[attribute]) {
-			xml.textContent = html[attribute];
+		    var newVal = (toXml) ? toXml(html[attribute]) : html[attribute];
+		    if (xml.textContent != newVal) {
+			xml.textContent = newVal;
 			self.fireXmlEvent(xml);
 		    }
 		});
@@ -75,8 +139,9 @@ Model.prototype.createAttributeBinding = function(htmlTag, attribute, xPath) {
 
 	xml.addEventListener("change", function() {
 
-	    if (html[attribute] != xml.textContent) {
-		html[attribute] = xml.textContent;
+	    var newVal = (fromXml) ? fromXml(xml.textContent) : xml.textContent;
+	    if (html[attribute] != newVal) {
+		html[attribute] = newVal;
 	    }
 	});
     }
@@ -112,7 +177,8 @@ Model.prototype.createTableBinding = function(table, fields, xPath, onclick, fil
 	    for (var i = 0; i < xml.length; i++) {
 
 		if (!filter || filter(xml[i])) {
-		    this.createTableRow(tab, xml[i], fields, onclick);
+		    var row = this.createTableRow(xml[i], fields, onclick);
+		    tab.appendChild(row);
 		}
 	    }
 	}
@@ -137,8 +203,6 @@ Model.prototype.createTableBinding = function(table, fields, xPath, onclick, fil
  * Editoren im onClick interessant, welche den Content der TR latent verändern
  * können.
  * 
- * @param tbody
- *                die Referenz auf den tbody
  * @param xmlNode
  *                die referenz auf das aktuelle xmlElement
  * @param fields
@@ -147,44 +211,70 @@ Model.prototype.createTableBinding = function(table, fields, xPath, onclick, fil
  *                optional - wenn gesetzt, wird die Funktion mit der TR und der
  *                aktuellen XMLNode als Argumente aufgerufen
  */
-Model.prototype.createTableRow = function(tbody, xmlNode, fields, onclick) {
+Model.prototype.createTableRow = function(xmlNode, fields, onclick) {
 
     var row = document.createElement("tr");
-    this.reloadTableRow(row, xmlNode, fields);
-    tbody.appendChild(row);
-
-    if (onclick) {
-	row.addEventListener("click", function() {
-	    onclick(row, xmlNode);
-	});
-    }
-
-    var self = this;
-    xmlNode.addEventListener("change", function(evt) {
-	self.reloadTableRow(row, xmlNode, fields);
-    });
-}
-
-/**
- * 
- * @param row
- * @param xmlNode
- */
-Model.prototype.reloadTableRow = function(row, xmlNode, fields) {
-
-    UIUtils.clearChilds(row);
+    row.tabIndex = "-1";
     for (var i = 0; i < fields.length; i++) {
 
 	var cell = document.createElement("td");
 	var field = fields[i];
-	var value = this.getNodeValue(xmlNode, fields[i]);
+	var value = this.getNodeValue(xmlNode, fields[i], cell);
 
-	if (typeof value == "string") {
-	    cell.textContent = value;
-	} else {
-	    cell.appendChild(value);
-	}
+	this.fillTableCell(cell, value);
 	row.appendChild(cell);
+    }
+
+    if (onclick) {
+	
+	var self = this;
+	row.addEventListener("click", function(evt) {	 
+	    
+	    var target = evt.target;
+	    if(target.tagName != "INPUT" && target.type != "radio" && target.type != "checkbox") {
+		self.handleRadioInputs(row);
+	    }
+	    onclick(row, xmlNode);
+	});
+    }
+    return row;
+}
+
+/**
+ * 
+ */
+Model.prototype.handleRadioInputs = function(row) {
+    
+    var allInputs = row.querySelectorAll("input");
+    for(var i = 0; i < allInputs.length; i++) {
+	switch(allInputs[i].type) {
+	case "radio":
+	    allInputs[i].checked = true;
+	    break;
+	    
+	case "checkbox":
+	    allInputs[i].checked = !allInputs[i].checked;
+	    break;
+	}
+    }
+}
+
+/**
+ * fill a cell
+ */
+Model.prototype.fillTableCell = function(cell, value) {
+
+    value = value || "";
+    if (typeof value == "string") {
+	cell.textContent = value;
+    } else {
+	if (!Array.isArray(value)) {
+	    cell.appendChild(value);
+	} else {
+	    for (var i = 0; i < value.length; i++) {
+		this.fillTableCell(cell, value[i]);
+	    }
+	}
     }
 }
 
@@ -202,10 +292,10 @@ Model.prototype.evaluateXPath = function(xPath) {
  * @param node
  * @param field
  */
-Model.prototype.getNodeValue = function(xmlNode, field) {
+Model.prototype.getNodeValue = function(xmlNode, field, cell) {
 
     if (typeof field == 'function') {
-	return field(xmlNode);
+	return field(cell, xmlNode);
     }
 
     var elem = xmlNode.getElementsByTagName(field)[0];
@@ -231,24 +321,29 @@ Model.prototype.getValue = function(xPath) {
  * @param xPath
  * @param value
  */
-Model.prototype.setValueSilent = function(xPath, value) {
+Model.prototype.setValue = function(xPath, value) {
 
     var cnr = this.evaluateXPath(xPath)[0];
     if (cnr) {
 	cnr.textContent = value;
+	this.fireXmlEvent(cnr);
     }
 }
 
 /**
  * 
  * @param xPath
+ * @elemName
  * @param value
  */
-Model.prototype.setValue = function(xPath, value) {
+Model.prototype.addValue = function(xPath, elemName, value) {
 
     var cnr = this.evaluateXPath(xPath)[0];
     if (cnr) {
-	cnr.textContent = value;
+
+	var node = this.xmlDocument.createElement(elemName);
+	node.textContent = value;
+	cnr.appendChild(node);
 	this.fireXmlEvent(cnr);
     }
 }
@@ -288,6 +383,25 @@ Model.prototype.addElement = function(xPath, node) {
 /**
  * 
  */
+Model.prototype.addElements = function(xPath, nodes) {
+
+    var result = [];
+    var cnr = this.evaluateXPath(xPath)[0];
+    if (cnr) {
+
+	for (var i = 0; i < nodes.length; i++) {
+	    var elem = XmlUtils.copyNode(nodes[i], cnr, true);
+	    result.push(XmlUtils.getXPathTo(elem));
+	}
+	this.fireXmlEvent(cnr);
+	return result;
+    }
+    return result;
+}
+
+/**
+ * 
+ */
 Model.prototype.removeElement = function(xPath) {
 
     var target = this.evaluateXPath(xPath)[0];
@@ -306,7 +420,7 @@ Model.prototype.removeChilds = function(xPath) {
 
     var target = this.evaluateXPath(xPath)[0];
     if (target) {
-	while(target.firstChild) {
+	while (target.firstChild) {
 	    target.removeChild(target.firstChild);
 	}
 	this.fireXmlEvent(target);
@@ -413,7 +527,6 @@ var ModelWorkingCopy = function(model, xPath) {
     this.workingCopy = XmlUtils.createDocument(this.orgNode.nodeName);
     Model.call(this, this.workingCopy);
 
-    console.log("make a working copy of '" + xPath + "'");
     if (this.orgNode) {
 
 	var element = this.orgNode.firstChild;
@@ -423,7 +536,6 @@ var ModelWorkingCopy = function(model, xPath) {
 	    element = element.nextSibling;
 	}
     }
-    console.log("New working copy: " + XmlUtils.stringify(this.workingCopy));
 }
 ModelWorkingCopy.prototype = Object.create(Model.prototype);
 

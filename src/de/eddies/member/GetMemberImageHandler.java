@@ -118,15 +118,15 @@ public class GetMemberImageHandler implements IGetDocServiceHandler
         switch (sex)
         {
             case F :
-                img = "../gui/images/default-avatar-female.svg";
+                img = "/eddies/gui/images/default-avatar-female.svg";
                 break;
 
             case M :
-                img = "../gui/images/default-avatar-male.svg";
+                img = "/eddies/gui/images/default-avatar-male.svg";
                 break;
 
             default :
-                img = "../gui/images/default-avatar-unknown.svg";
+                img = "/eddies/gui/images/default-avatar-unknown.svg";
                 break;
 
         }
