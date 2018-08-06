@@ -1,5 +1,11 @@
 de.eddies.session.GetSessionStateHandler
 de.eddies.session.LogoutHandler
 de.eddies.session.LogonHandler
+de.eddies.session.ChangePWDHandler
 
 de.eddies.mainview.GetCalendarHandler
+
+de.eddies.member.GetAllMembersHandler
+de.eddies.member.SaveMembersModelHandler
+
+

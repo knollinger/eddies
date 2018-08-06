@@ -23,9 +23,23 @@ var LoginView = function() {
 	    self.login();
 	});
 	self.adjustSubmitBtn();
+
+	self.frame.addEventListener("keyup", function(evt) {
+	    if (evt.keyCode == 13) {
+		self.submitBtn.click();
+	    }
+	});
     });
 }
 LoginView.prototype = Object.create(WorkSpaceFrame.prototype);
+
+/**
+ * 
+ */
+LoginView.prototype.getTitle = function() {
+
+    return "Eddy CrashPaddy - Login";
+}
 
 /**
  * 
@@ -49,11 +63,17 @@ LoginView.prototype.login = function() {
 	    break;
 
 	case "error-response":
+	    var title = MessageCatalog.getMessage("LOGIN_ERROR_TITLE");
+	    var messg = MessageCatalog.getMessage("LOGIN_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+	    new MessageBox(MessageBox.ERROR, title, messg);
 	    self.close();
 	    break;
 	}
     }
     caller.onError = function(req, status) {
+	var title = MessageCatalog.getMessage("LOGIN_ERROR_TITLE");
+	var messg = MessageCatalog.getMessage("LOGIN_TECH_ERROR", status);
+	new MessageBox(MessageBox.ERROR, title, messg);
 	self.close();
     }
 
@@ -114,22 +134,27 @@ ChangePasswordView.prototype.changePasswd = function() {
     var caller = new ServiceCaller();
     caller.onSuccess = function(rsp) {
 	switch (rsp.documentElement.nodeName) {
-	case "changepwd-response":
+	case "changepwd-ok-response":
 	    self.close();
 	    break;
 
 	case "error-response":
+	    var title = MessageCatalog.getMessage("PWDCHANGE_ERROR_TITLE");
+	    var messg = MessageCatalog.getMessage("PWDCHANGE_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+	    new MessageBox(MessageBox.ERROR, title, messg);
 	    self.close();
 	    break;
 	}
     }
     caller.onError = function(req, status) {
+	var title = MessageCatalog.getMessage("PWDCHANGE_ERROR_TITLE");
+	var messg = MessageCatalog.getMessage("PWDCHANGE_TECH_ERROR", status);
+	new MessageBox(MessageBox.ERROR, title, messg);	
 	self.close();
     }
 
     var req = XmlUtils.createDocument("changepwd-request");
     XmlUtils.setNode(req, "old-passwd", this.oldPwdEntry.value);
     XmlUtils.setNode(req, "new-passwd", this.newPwdEntry.value);
-    XmlUtils.setNode(req, "new-passwd1", this.newPwd1Entry.value);
     caller.invokeService(req);
 }

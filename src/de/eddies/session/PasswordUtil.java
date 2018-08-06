@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  *
  */
-class PasswordUtil
+public class PasswordUtil
 {
     /**
      * 

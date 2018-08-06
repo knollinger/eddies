@@ -54,6 +54,22 @@ public class SessionWrapper
     }
 
     /**
+     * @return die mit der Session assozierte AccountID
+     */
+    public String getEmail()
+    {
+        return (String)this.httpSession.getAttribute("eddies.email");
+    }
+
+    /**
+     * @param name
+     */
+    public void setEmail(String email)
+    {
+        this.httpSession.setAttribute("eddies.email", email);
+    }
+
+    /**
      * @return die jsessionId
      */
     public String getSessionId()

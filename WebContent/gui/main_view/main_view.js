@@ -5,10 +5,11 @@
  */
 var MainViewCalendar = function() {
 
+    this.currentDate = new Date();
+    
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/calendar.html", function() {
 
-	self.currentDate = new Date();
 	self.setupUI();
 	self.update();
     });
@@ -18,16 +19,23 @@ MainViewCalendar.prototype = Object.create(WorkSpaceFrame.prototype)
 /**
  * 
  */
+MainViewCalendar.prototype.getTitle = function() {
+    
+    return "Eddy CrashPaddy";
+}
+
+/**
+ * 
+ */
 MainViewCalendar.prototype.setupUI = function() {
 
     var self = this;
 
-    UIUtils.getElement("calendar-go-back").addEventListener("click", function(evt) {
+    this.createToolButton("gui/images/go-back.svg", "Eine Woche zurück", function() {
 	self.currentDate.setDate(self.currentDate.getDate() - 7);
 	self.update();
     });
-
-    UIUtils.getElement("calendar-go-fore").addEventListener("click", function(evt) {
+    this.createToolButton("gui/images/go-fore.svg", "Eine Woche vor", function() {
 	self.currentDate.setDate(self.currentDate.getDate() + 7);
 	self.update();
     });
@@ -40,7 +48,7 @@ MainViewCalendar.prototype.update = function() {
 
     // update title
     var weekOfYear = DateTimeUtils.formatDate(this.currentDate, "Kalenderwoche {w}-{yyyy}");
-    UIUtils.getElement("calendar-title").textContent = weekOfYear;
+    // UIUtils.getElement("calendar-title").textContent = weekOfYear;
 
     var self = this;
     var startDate = this.findStartDate();
@@ -134,9 +142,7 @@ MainViewCalendar.prototype.makeDay = function(date) {
     var self = this;
     if (SessionManager.hasSession()) {
 
-	var expand = this.createPropertiesMenu(baseXPath);
-	content.appendChild(expand);
-
+	UIUtils.addClass(content, "clickable");
 	content.addEventListener("click", function() {
 	    new MainViewDetails(self.model, date);
 	});
@@ -161,16 +167,6 @@ MainViewCalendar.prototype.makeOpeningTimeIndicator = function(xpath) {
     return time;
 }
 
-/**
- * 
- */
-MainViewCalendar.prototype.createPropertiesMenu = function(xpath) {
-
-    var menu = document.createElement("div");
-    menu.className = "calendar-day-propmenu";
-    return menu;
-}
-
 /*---------------------------------------------------------------------------*/
 /**
  * 
@@ -182,7 +178,6 @@ var MainViewDetails = function(model, day) {
 
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/details.html", function() {
-	self.setupTitle(day);
 	self.actionRemove = self.createRemoveAction();
 	var observingXPath = "//get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "']";
 	self.model.addChangeListener(observingXPath, function() {
@@ -196,18 +191,19 @@ MainViewDetails.prototype = Object.create(WorkSpaceFrame.prototype);
 /**
  * 
  */
-MainViewDetails.prototype.setupTitle = function(day) {
+MainViewDetails.prototype.getTitle = function() {
 
-    var date = DateTimeUtils.formatDate(day, "{dd}.{mm}.{yyyy}");
-    UIUtils.getElement("mainview-details-title").textContent = "Tages-Plan für den " + date;
+    var date = DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}");
+    return "Tages-Plan für den " + date;
 }
+
 
 /**
  * 
  */
 MainViewDetails.prototype.createRemoveAction = function() {
 
-    var btn = this.createToolButton("gui/images/trashbin.svg", function() {
+    var btn = this.createToolButton("gui/images/trashbin.svg", "Löschen", function() {
 
     });
     btn.hide();
@@ -309,16 +305,16 @@ MainViewDetailsEntry.prototype.makeNameSection = function(memberId) {
     var result = document.createElement("div");
     result.className = "details-namesection";
 
-    var isEditable = SessionManager.isAdmin() || SessionManager.isMee(memberId);
-    if (isEditable) {
-	result.className += " details-content-selectable";
-
-	var self = this;
-	result.addEventListener("click", function() {
-	    new MemberOverview(self.model, "//get-calendar-ok-rsp/members", function(id) {
-	    }, memberId);
-	});
-    }
+//    var isEditable = SessionManager.isAdmin() || SessionManager.isMee(memberId);
+//    if (isEditable) {
+//	result.className += " details-content-selectable";
+//
+//	var self = this;
+//	result.addEventListener("click", function() {
+//	    new MemberOverview(self.model, "//get-calendar-ok-rsp/members", function(id) {
+//	    }, memberId);
+//	});
+//    }
 
     var self = this;
     var xpath = "//get-calendar-ok-rsp/members/member[id='" + memberId + "']";

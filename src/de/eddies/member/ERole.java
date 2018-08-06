@@ -1,4 +1,4 @@
-package de.eddies.session;
+package de.eddies.member;
 
 /**
  *

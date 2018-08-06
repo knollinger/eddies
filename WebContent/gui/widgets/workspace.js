@@ -10,11 +10,40 @@ var WorkSpace = (function() {
 	MainMenu.show();
     });
 
+    var frames = [];
+
     return {
 
+	/**
+	 * 
+	 */
+	setTitle : function(text) {
+	    document.getElementById("workspace-title-text").textContent = text;
+	},
+
+	/**
+	 * 
+	 */
 	addFrame : function(frame) {
 
+	    frames.push(frame);
 	    wsBody.appendChild(frame.frame);
+	    frame.activate();
+	},
+
+	/**
+	 * 
+	 */
+	removeFrame : function(frame) {
+
+	    var idx = frames.indexOf(frame);
+	    if (idx != -1) {
+		frames.splice(idx, 1);
+	    }
+	    if (frames.length) {
+		frames[frames.length - 1].activate();
+	    }
+	    UIUtils.removeElement(frame.frame);
 	}
     }
 })();
@@ -40,11 +69,14 @@ var WorkSpaceFrame = function(url, onload) {
 		self.body.innerHTML = req.responseText;
 		self.frame.appendChild(self.body);
 
-		if (self.hasFooter()) {
+		self.footer = self.createActionBar();
+		self.frame.insertBefore(self.footer, self.body);
 
-		    self.footer = self.createFooter();
-		    self.frame.appendChild(self.footer);
-		}
+		self.frame.addEventListener("keyup", function(evt) {
+		    if (evt.keyCode == 27) {
+			self.close();
+		    }
+		});
 
 		WorkSpace.addFrame(self);
 		if (onload) {
@@ -59,37 +91,29 @@ var WorkSpaceFrame = function(url, onload) {
 /**
  * 
  */
-WorkSpaceFrame.prototype.createFooter = function() {
+WorkSpaceFrame.prototype.createActionBar = function() {
 
-    var footer = document.createElement("div");
-    footer.className = "workspace-frame-footer";
+    var header = document.createElement("div");
+    header.className = "workspace-frame-actionbar";
 
     var self = this;
     if (this.hasCloseButton()) {
-	this.closeButton = new WorkSpaceActionButton("gui/images/go-back.svg", function() {
+	this.closeButton = new WorkSpaceActionButton("gui/images/go-back.svg", "Zurück", function() {
 	    self.close();
 	});
-	footer.appendChild(this.closeButton.ui);
+	header.appendChild(this.closeButton.ui);
     }
-    
+
     if (this.hasSaveButton()) {
-	this.saveButton = new WorkSpaceActionButton("gui/images/save.svg", function() {
+	this.saveButton = new WorkSpaceActionButton("gui/images/save.svg", "Speichern", function() {
 	    self.save();
 	});
-	footer.appendChild(this.saveButton.ui);
+	header.appendChild(this.saveButton.ui);
     }
-    
+
     this.toolBox = this.createToolBox();
-    footer.appendChild(this.toolBox);
-    return footer;
-}
-
-/**
- * 
- */
-WorkSpaceFrame.prototype.hasFooter = function() {
-
-    return this.hasCloseButton() || this.hasSaveButton();
+    header.appendChild(this.toolBox);
+    return header;
 }
 
 /**
@@ -136,9 +160,9 @@ WorkSpaceFrame.prototype.createToolBox = function() {
 /**
  * 
  */
-WorkSpaceFrame.prototype.createToolButton = function(imgUrl, onclick) {
+WorkSpaceFrame.prototype.createToolButton = function(imgUrl, title, onclick) {
 
-    var btn = new WorkSpaceActionButton(imgUrl, onclick);
+    var btn = new WorkSpaceActionButton(imgUrl, title, onclick);
     this.toolBox.appendChild(btn.ui);
     return btn;
 }
@@ -165,7 +189,7 @@ WorkSpaceFrame.prototype.close = function() {
     if (this.onClose) {
 	this.onClose();
     }
-    UIUtils.removeElement(this.frame);
+    WorkSpace.removeFrame(this);
 }
 
 /**
@@ -182,11 +206,25 @@ WorkSpaceFrame.prototype.save = function() {
     }
 }
 
+/**
+ * 
+ */
+WorkSpaceFrame.prototype.activate = function() {
+
+    if (this.onActivate) {
+	this.onActivate();
+    }
+
+    var title = (this.getTitle) ? this.getTitle() : "getTitle nicht implementiert!";
+    WorkSpace.setTitle(title);
+}
+
 /*---------------------------------------------------------------------------*/
-var WorkSpaceActionButton = function(imgUrl, onclick) {
-    
+var WorkSpaceActionButton = function(imgUrl, title, onclick) {
+
     this.ui = document.createElement("div");
     this.ui.className = "workspace-frame-action";
+    this.ui.title = title;
 
     var img = document.createElement("img");
     img.src = imgUrl;
@@ -220,7 +258,7 @@ var MainMenu = (function() {
     var login = document.getElementById("main-menu-login");
     var logout = document.getElementById("main-menu-logout");
     var changePwd = document.getElementById("main-menu-change-pwd");
-    var goAdmin = document.getElementById("main-menu-admin");
+    var goAdmin = document.getElementById("main-menu-usermgmt");
 
     content.addEventListener("blur", function() {
 	MainMenu.hide();
@@ -249,7 +287,7 @@ var MainMenu = (function() {
 
     goAdmin.addEventListener("click", function() {
 	MainMenu.hide();
-	new AdminView();
+	new MemberOverview();
     });
 
     /**

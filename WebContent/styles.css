@@ -5,10 +5,10 @@
 }
 
 *:focus {
-	-webkit-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
-	-moz-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
-	-ms-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
-	box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
+	-webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 192, 1);
+	-moz-box-shadow: 0px 0px 4px 0px rgba(0, 0, 192, 1);
+	-ms-box-shadow: 0px 0px 4px 0px rgba(0, 0, 192, 1);
+	box-shadow: 0px 0px 4px 0px rgba(0, 0, 192, 1);
 	outline: none;
 }
 
@@ -56,6 +56,11 @@ select {
 	background: transparent url("gui/images/dropdown-markup.png") no-repeat
 		right center;
 	appearance: none;
+}
+select:disabled {
+	color: black;
+	border-color: transparent;
+	background: none;
 }
 
 option {
@@ -184,7 +189,7 @@ td:last-child {
 }
 
 .clickable {
-	cursor: default;
+	cursor: hand;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -246,6 +251,9 @@ td:last-child {
 	border: 1px solid #888888;
 	padding: 10px;
 	border-radius: 2px;
+	-webkit-box-shadow: 2px 2px 2px #c0c0c0;
+	-moz-box-shadow: 2px 2px 2px #c0c0c0;
+	-ms-box-shadow: 2px 2px 2px #c0c0c0;
 	box-shadow: 2px 2px 2px #c0c0c0;
 	z-index: 1;
 }
@@ -438,7 +446,7 @@ td:last-child {
 	flex: 2;
 }
 
-.grid-row:before, .grid-row:after {
+[class*='grid-row-']:before, [class*='grid-row-']:after {
 	content: ' ';
 	display: table;
 	clear: both;
@@ -511,7 +519,7 @@ td:last-child {
 }
 
 .workspace-header {
-	height: 35%;
+	height: 25%;
 	background: url('gui/images/background.jpg');
 	background-size: cover;
 	background-position: center center;
@@ -569,15 +577,23 @@ td:last-child {
 	overflow: auto;
 }
 
-.workspace-frame-footer {
+.workspace-frame-actionbar {
 	-webkit-flex: 0 auto;
 	flex: 0 auto;
 	overflow: hidden;
 	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
 	display: flex;
 	-webkit-flex-direction: row;
+	-moz-flex-direction: row;
+	-ms-flex-direction: row;
 	flex-direction: row;
-	border-top: 1px solid #d0d0d0;
+	border-bottom: 1px solid #d0d0d0;
+	-webkit-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
+	-moz-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
+	-ms-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
+	box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 }
 
 .workspace-frame-action {
@@ -586,6 +602,7 @@ td:last-child {
 	border: 1px solid transparent;
 	border-radius: 2px;
 	padding: 5px;
+	margin: 5px;
 }
 
 .workspace-frame-action:hover {
@@ -640,6 +657,85 @@ td:last-child {
 	flex-direction: column;
 }
 
+/**
+ * alles über die MessageBox
+ */
+.mbox-glass {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.1);
+	z-index: 2;
+}
+
+.mbox-frame {
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	-moz-flex-direction: column;
+	-ms-flex-direction: column;
+	flex-direction: column;
+	height: 250px;
+	width: 80%;
+	border: 1px solid #d0d0d0;
+	background-color: white;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	box-shadow: 5px 5px 5px #808080;
+	z-index: 1;
+}
+
+@media only screen and (min-width: 600px) {
+	.mbox-frame {
+		width: 700px;
+	}
+}
+
+.mbox-title {
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
+	padding: 10px;
+	background-color: #475057;
+	color: #eff0f1;
+	font-weight: 600;
+}
+
+.mbox-content {
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+	padding: 10px;
+	overflow: auto;
+}
+
+.mbox-icon {
+	display: block;
+	margin-bottom: 10px;
+	width: 32px;
+}
+
+.mbox-footer {
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
+	padding: 10px;
+	border-top: 1px solid #d0d0d0;
+}
+
+.mbox-button {
+	margin-right: 10px;
+}
+
 /*---------------------------------------------------------------------------*/
 /**
  *
@@ -658,6 +754,9 @@ td:last-child {
 	position: absolute;
 	background: white;
 	border-width: 1px solid #d0d0d0;
+	-webkit-box-shadow: 5px 5px 5px #888888;
+	-moz-box-shadow: 5px 5px 5px #888888;
+	-ms-box-shadow: 5px 5px 5px #888888;
 	box-shadow: 5px 5px 5px #888888;
 	z-index: 1;
 	padding: 5px;
@@ -793,27 +892,12 @@ td:last-child {
 	border-left: 20px solid #ff557f;
 }
 
-.calendar-day-propmenu {
-	margin-left: 5px;
-	width: 1em;
-	height: 1em;
-	padding: 4px;
-	background: transparent url("gui/images/arrow-right.svg") no-repeat
-		center center;
-	background-size: 16px;
-	border: 1px solid transparent;
-}
-
-.calendar-day-propmenu:active {
-	transform: translate(1px, 1px);
-}
-
 /*---------------------------------------------------------------------------*/
 /**
  * all about the details view
  */
 #mainview-details-body>input[type='radio']:checked+.details-entry-cnr {
-	-webkit-box-shadow: 0px 0px 4px 0px #808080;
+	-webkit-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 	-moz-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 	-ms-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 	box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
@@ -894,25 +978,62 @@ td:last-child {
  * all about the memberView
  */
 .member-overview-container {
-	padding: 5px;
-	background-color: #e0e0e0;
+	padding: 5px 0 5px 0;
 	overflow: auto;
 }
 
 .member-overview-entry {
 	margin-bottom: 10px;
 	padding: 10px;
-	border: 1px solid #d0d0d0;
+	border-bottom: 1px solid #d0d0d0;
 	border-radius: 2px;
 	background-color: #ffffff;
 }
 
 .member-overview-entry:last-child {
-	margin-bottom: unset;
+	border-bottom: 1px solid transparent;
 }
 
-.member-overview-entry>input[type='radio'] {
-	margin-bottom: 10px;
+.member-overview-title-row {
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: flex;
+	-webkit-align-items: center;
+	-moz-align-items: center;
+	-ms-align-items: center;
+	align-items: center;
+}
+
+.member-overview-title-row>img {
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
+	width: 64px;
+	height: 64px;
+	border: 1px solid #d0d0d0;
+	border-radius: 50%;
+	width: 64px;
+}
+
+.member-overview-title-row>span {
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+	font-weight: 600;
+	padding: 0 10px 0 10px;
+}
+
+.member-overview-content {
+	padding-top: 10px;
+	display: none;
+}
+
+.member-overview-entry>input[type='radio']:checked ~
+	.member-overview-content {
+	display: block;
 }
 
 /*---------------------------------------------------------------------------*/

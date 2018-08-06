@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
+import de.eddies.member.ERole;
 import de.eddies.service.ErrorResponse;
 import de.eddies.service.IJAXBObject;
 import de.eddies.service.IXmlServiceHandler;

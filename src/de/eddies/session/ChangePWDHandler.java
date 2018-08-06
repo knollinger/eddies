@@ -19,7 +19,7 @@ import de.eddies.service.IXmlServiceHandler;
 /**
  *
  */
-public class LogonHandler implements IXmlServiceHandler
+public class ChangePWDHandler implements IXmlServiceHandler
 {
     /* (non-Javadoc)
      * @see de.eddies.service.IXmlServiceHandler#needSession()
@@ -27,7 +27,7 @@ public class LogonHandler implements IXmlServiceHandler
     @Override
     public boolean needSession()
     {
-        return false;
+        return true;
     }
 
     /* (non-Javadoc)
@@ -67,22 +67,22 @@ public class LogonHandler implements IXmlServiceHandler
         {
             Request req = (Request) request;
 
-            String email = req.email.toLowerCase();
-            String pwd = PasswordUtil.hashPassword(req.password);
+            String email = session.getEmail();
+            String oldPwd = PasswordUtil.hashPassword(req.oldPWD);
+            String newPwd = PasswordUtil.hashPassword(req.newPWD);
 
             conn = ConnectionPool.getConnection();
-            stmt = conn.prepareStatement("select id from accounts where email=? and pwdhash=?");
-            stmt.setString(1, email);
-            stmt.setString(2, pwd);
-            rs = stmt.executeQuery();
-            if (!rs.next())
+            stmt = conn.prepareStatement("update accounts set pwdhash=? where email=? and pwdhash=?");
+            stmt.setString(1, newPwd);
+            stmt.setString(2, email);
+            stmt.setString(3, oldPwd);
+            int count = stmt.executeUpdate();
+            if (count == 0)
             {
                 rsp = new ErrorResponse("Die angegebene Email oder das Kennwort sind falsch");
             }
             else
             {
-                session.setAccountId(rs.getInt("id"));
-                session.setEmail(email);
                 rsp = new Response();      
             }
         }
@@ -102,22 +102,22 @@ public class LogonHandler implements IXmlServiceHandler
     /**
      *
      */
-    @XmlRootElement(name = "logon-request")
-    @XmlType(name = "LogonHandler.Request")
+    @XmlRootElement(name = "changepwd-request")
+    @XmlType(name = "ChangePWDHandler.Request")
     public static class Request implements IJAXBObject
     {
-        @XmlElement(name = "email")
-        public String email;
+        @XmlElement(name = "old-passwd")
+        public String oldPWD;
 
-        @XmlElement(name = "password")
-        public String password;
+        @XmlElement(name = "new-passwd")
+        public String newPWD;
     }
 
     /**
     *
     */
-    @XmlRootElement(name = "logon-response")
-    @XmlType(name = "LogonHandler.Response")
+    @XmlRootElement(name = "changepwd-ok-response")
+    @XmlType(name = "ChangePWDHandler.Response")
     public static class Response implements IJAXBObject
     {
     }
