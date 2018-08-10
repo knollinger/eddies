@@ -64,7 +64,7 @@ public class MemberDBUtils
         {
             List<Member> result = new ArrayList<>();
 
-            stmt = conn.prepareStatement("select id, zname, vname, phone, mobile, email, sex, role from accounts");
+            stmt = conn.prepareStatement("select id, zname, vname, phone, mobile, email, sex, role from accounts order by vname, zname");
             rs = stmt.executeQuery();
             while (rs.next())
             {

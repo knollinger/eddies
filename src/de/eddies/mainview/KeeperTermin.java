@@ -7,15 +7,19 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import de.eddies.service.EAction;
 import de.eddies.service.IJAXBObject;
 import de.eddies.utils.SQLDateXMLAdapter;
 import de.eddies.utils.SQLTimeXMLAdapter;
 
-@XmlType(name="CalendarEntry")
-public class CalendarEntry implements IJAXBObject
+@XmlType(name="KeeperTermin")
+public class KeeperTermin implements IJAXBObject
 {
     @XmlElement(name="id")
     public int id;
+    
+    @XmlElement(name="action")
+    public EAction action = EAction.NONE;
 
     @XmlElement(name="date")
     @XmlJavaTypeAdapter(value=SQLDateXMLAdapter.class)
@@ -30,8 +34,5 @@ public class CalendarEntry implements IJAXBObject
     public Time end; 
     
     @XmlElement(name="keeper")
-    public int keeper = -1;
-    
-    @XmlElement(name="purifier")
-    public int purifier = -1;
+    public int member;
 }

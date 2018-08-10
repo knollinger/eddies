@@ -6,7 +6,7 @@
 var MainViewCalendar = function() {
 
     this.currentDate = new Date();
-    
+
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/calendar.html", function() {
 
@@ -20,7 +20,7 @@ MainViewCalendar.prototype = Object.create(WorkSpaceFrame.prototype)
  * 
  */
 MainViewCalendar.prototype.getTitle = function() {
-    
+
     return "Eddy CrashPaddy";
 }
 
@@ -48,12 +48,15 @@ MainViewCalendar.prototype.update = function() {
 
     // update title
     var weekOfYear = DateTimeUtils.formatDate(this.currentDate, "Kalenderwoche {w}-{yyyy}");
-    // UIUtils.getElement("calendar-title").textContent = weekOfYear;
 
     var self = this;
     var startDate = this.findStartDate();
     var endDate = this.findLastDate();
     this.loadModel(startDate, endDate, function() {
+
+	self.model.addChangeListener("//calendar-model", function() {
+	    self.fillWeek(startDate, endDate);
+	});
 	self.fillWeek(startDate, endDate);
     });
 }
@@ -63,7 +66,7 @@ MainViewCalendar.prototype.update = function() {
  */
 MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
 
-    UIUtils.clearChilds("workspace-frame-content-body");
+    UIUtils.clearChilds("workspace-frame-calendar-body");
     var currentDate = new Date(startDate);
     while (currentDate <= endDate) {
 	this.makeDay(new Date(currentDate));
@@ -99,11 +102,23 @@ MainViewCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
     var self = this;
     var caller = new ServiceCaller();
     caller.onSuccess = function(rsp) {
-	self.model = new Model(rsp);
-	onsuccess();
+	switch (rsp.documentElement.nodeName) {
+	case "calendar-model":
+	    self.model = new Model(rsp);
+	    onsuccess();
+	    break;
+
+	case "error-response":
+	    var title = MessageCatalog.getMessage("GET_CALENDER_ERROR_TITLE");
+	    var messg = MessageCatalog.getMessage("GET_CALENDER_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+	    new MessageBox(MessageBox.ERROR, title, message);
+	    break;
+	}
     }
     caller.onError = function(req, status) {
-	// TODO: not yet implemented
+	var title = MessageCatalog.getMessage("GET_CALENDER_ERROR_TITLE");
+	var messg = MessageCatalog.getMessage("GET_CALENDER_TECH_ERROR", status);
+	new MessageBox(MessageBox.ERROR, title, message);
     }
 
     var req = XmlUtils.createDocument("get-calendar-req");
@@ -129,7 +144,7 @@ MainViewCalendar.prototype.makeDay = function(date) {
     title.textContent = DateTimeUtils.formatDate(date, "{D} - {dd}.{mm}.{yyyy}");
     content.appendChild(title);
 
-    var baseXPath = "/get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and keeper != '0']";
+    var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
     var entries = this.model.evaluateXPath(baseXPath);
     if (entries.length == 0) {
 	content.className += " calendar-day-closed";
@@ -137,7 +152,7 @@ MainViewCalendar.prototype.makeDay = function(date) {
 	content.className += " calendar-day-open";
 	content.appendChild(this.makeOpeningTimeIndicator(baseXPath));
     }
-    UIUtils.getElement("workspace-frame-content-body").appendChild(day);
+    UIUtils.getElement("workspace-frame-calendar-body").appendChild(day);
 
     var self = this;
     if (SessionManager.hasSession()) {
@@ -154,17 +169,46 @@ MainViewCalendar.prototype.makeDay = function(date) {
  */
 MainViewCalendar.prototype.makeOpeningTimeIndicator = function(xpath) {
 
-    var allFrom = this.model.evaluateXPath(xpath + "/begin");
-    var allUntil = this.model.evaluateXPath(xpath + "/end");
-
-    var begin = allFrom[0].textContent;
-    var end = allUntil[allUntil.length - 1].textContent;
-
+    var begin = DateTimeUtils.formatTime(this.findFrom(xpath), "{hh}:{mm}");
+    var end = DateTimeUtils.formatTime(this.findUntil(xpath), "{hh}:{mm}");
     var time = document.createElement("div");
     time.className = "calendar-day-time";
     time.textContent = begin + " - " + end;
 
     return time;
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.findFrom = function(xpath) {
+
+    var result = null;
+
+    var allFrom = this.model.evaluateXPath(xpath + "/begin");
+    for (var i = 0; i < allFrom.length; i++) {
+	var curr = DateTimeUtils.parseTime(allFrom[i].textContent, "hh:mm");
+	if (result == null || curr < result) {
+	    result = curr;
+	}
+    }
+    return result;
+}
+/**
+ * 
+ */
+MainViewCalendar.prototype.findUntil = function(xpath) {
+
+    var result = null;
+
+    var allFrom = this.model.evaluateXPath(xpath + "/end");
+    for (var i = 0; i < allFrom.length; i++) {
+	var curr = DateTimeUtils.parseTime(allFrom[i].textContent, "hh:mm");
+	if (result == null || curr > result) {
+	    result = curr;
+	}
+    }
+    return result;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -173,15 +217,19 @@ MainViewCalendar.prototype.makeOpeningTimeIndicator = function(xpath) {
  */
 var MainViewDetails = function(model, day) {
 
-    this.model = model;
+    this.model = new ModelWorkingCopy(model, "//calendar-model");
     this.day = day;
 
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/details.html", function() {
+
+	self.enableSaveButton(false);
+	self.actionAddKeeper = self.createAddKeeperAction();
+	self.actionAddPurifier = self.createAddPurifierAction();
 	self.actionRemove = self.createRemoveAction();
-	var observingXPath = "//get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "']";
+	var observingXPath = "//calendar-model";
 	self.model.addChangeListener(observingXPath, function() {
-	    self.update();
+	    self.enableSaveButton(true);
 	});
 	self.update();
     });
@@ -197,14 +245,69 @@ MainViewDetails.prototype.getTitle = function() {
     return "Tages-Plan für den " + date;
 }
 
+/**
+ * 
+ */
+MainViewDetails.prototype.createAddKeeperAction = function() {
+
+    var self = this;
+    var btn = this.createToolButton("gui/images/person-add.svg", "Theki hinzu fügen", function() {
+
+	new MemberSelector(function(memberId) {
+	    var doc = XmlUtils.parse(MainViewDetails.EMPTY_KEEPER);
+	    XmlUtils.setNode(doc, "keeper", memberId);
+	    XmlUtils.setNode(doc, "date", DateTimeUtils.formatDate(self.day, "{dd}.{mm}.{yyyy}"));
+	    self.currEntryXPath = self.model.addElement("//calendar-model/keeper-entries", doc.documentElement);
+	    self.currEntry = self.fillOneKeeper(self.currEntryXPath);
+	    self.currEntry.container.querySelector("input").focus();
+	});
+
+    });
+    return btn;
+}
+MainViewDetails.EMPTY_KEEPER = "<keeper-entry><id/><action>CREATE</action><date/><begin/><end/><keeper/></keeper-entry>";
+
+/**
+ * 
+ */
+MainViewDetails.prototype.createAddPurifierAction = function() {
+
+    var self = this;
+    var btn = this.createToolButton("gui/images/purifier-add.svg", "Heinzelmännchen hinzu fügen", function() {
+
+	new MemberSelector(function(memberId) {
+	    var doc = XmlUtils.parse(MainViewDetails.EMPTY_PURIFIER);
+	    XmlUtils.setNode(doc, "purifier", memberId);
+	    XmlUtils.setNode(doc, "date", DateTimeUtils.formatDate(self.day, "{dd}.{mm}.{yyyy}"));
+	    self.currEntryXPath = self.model.addElement("//calendar-model/purifier-entries", doc.documentElement);
+	    self.currEntry = self.fillOnePurifier(self.currEntryXPath);
+	});
+    });
+    return btn;
+}
+MainViewDetails.EMPTY_PURIFIER = "<purifier-entry><id/><action>CREATE</action><date/><purifier/></purifier-entry>";
 
 /**
  * 
  */
 MainViewDetails.prototype.createRemoveAction = function() {
 
-    var btn = this.createToolButton("gui/images/trashbin.svg", "Löschen", function() {
+    var self = this;
+    var btn = this.createToolButton("gui/images/person-remove.svg", "Löschen", function() {
 
+	var title = MessageCatalog.getMessage("REMOVE_KEEPER_TITLE");
+	var messg = MessageCatalog.getMessage("REMOVE_KEEPER_QUERY");
+	new MessageBox(MessageBox.QUERY, title, messg, function() {
+	    var action = self.model.getValue(self.currEntryXPath + "/action");
+	    if (action == "CREATE") {
+		self.model.removeElement(self.currEntryXPath);
+	    } else {
+		self.model.setValue(self.currEntryXPath + "/action", "REMOVE");
+	    }
+	    UIUtils.removeElement(self.currEntry.container);
+	    self.currEntry = self.currEntryXPath = null;
+	    btn.hide();
+	});
     });
     btn.hide();
     return btn;
@@ -215,9 +318,8 @@ MainViewDetails.prototype.createRemoveAction = function() {
  */
 MainViewDetails.prototype.update = function() {
 
-    UIUtils.clearChilds("mainview-details-body");
     this.fillAllKeepers();
-    // this.fillAllPurifiers(day);
+    this.fillAllPurifiers();
 }
 
 /**
@@ -225,7 +327,8 @@ MainViewDetails.prototype.update = function() {
  */
 MainViewDetails.prototype.fillAllKeepers = function() {
 
-    var xpath = "//get-calendar-ok-rsp/entries/entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "' and keeper!= '0']";
+    UIUtils.clearChilds("mainview-details-keepers");
+    var xpath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
     var allEntries = this.model.evaluateXPath(xpath);
     for (var i = 0; i < allEntries.length; i++) {
 
@@ -243,11 +346,11 @@ MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
     radio.type = "radio";
     radio.className = "hidden";
     radio.name = "mainview_details_entry";
-    UIUtils.getElement("mainview-details-body").appendChild(radio);
+    UIUtils.getElement("mainview-details-keepers").appendChild(radio);
 
-    var entry = new MainViewDetailsEntry(this.model, entryXPath);
+    var entry = new MainViewDetailsKeeperEntry(this.model, entryXPath);
     var entryUI = entry.container;
-    UIUtils.getElement("mainview-details-body").appendChild(entryUI);
+    UIUtils.getElement("mainview-details-keepers").appendChild(entryUI);
 
     var self = this;
     entryUI.addEventListener("click", function() {
@@ -264,14 +367,126 @@ MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
 	    self.currEntry = self.currEntryXPath = null;
 	    self.actionRemove.hide();
 	}
+
+	self.model.addChangeListener(entryXPath, function() {
+
+	    var action = self.model.getValue(entryXPath + "/action");
+	    if (action == "NONE") {
+		self.model.setValue(entryXPath + "/action", "MODIFY");
+	    }
+	});
     });
+    return entry;
+}
+
+/**
+ * 
+ */
+MainViewDetails.prototype.fillAllPurifiers = function() {
+
+    UIUtils.clearChilds("mainview-details-purifiers");
+    var xpath = "//calendar-model/purifier-entries/purifier-entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
+    var allEntries = this.model.evaluateXPath(xpath);
+    for (var i = 0; i < allEntries.length; i++) {
+
+	var entryXPath = XmlUtils.getXPathTo(allEntries[i]);
+	this.fillOnePurifier(entryXPath);
+    }
+}
+
+/**
+ * 
+ */
+MainViewDetails.prototype.fillOnePurifier = function(entryXPath) {
+
+    var radio = document.createElement("input");
+    radio.type = "radio";
+    radio.className = "hidden";
+    radio.name = "mainview_details_entry";
+    UIUtils.getElement("mainview-details-purifiers").appendChild(radio);
+
+    var entry = new MainViewDetailsPurifierEntry(this.model, entryXPath);
+    var entryUI = entry.container;
+    UIUtils.getElement("mainview-details-purifiers").appendChild(entryUI);
+
+    var self = this;
+    entryUI.addEventListener("click", function() {
+
+	// click the radio to enable the css-rule for selected entries
+	radio.click();
+
+	var memberId = self.model.getValue(entryXPath + "/purifier");
+	if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
+	    self.currEntry = entry;
+	    self.currEntryXPath = entryXPath;
+	    self.actionRemove.show();
+	} else {
+	    self.currEntry = self.currEntryXPath = null;
+	    self.actionRemove.hide();
+	}
+    });
+    return entry;
+}
+
+/**
+ * 
+ */
+MainViewDetails.prototype.onSave = function() {
+
+    var self = this;
+    var caller = new ServiceCaller();
+    caller.onSuccess = function(rsp) {
+	switch (rsp.documentElement.nodeName) {
+	case "save-calender-model-ok-rsp":
+	    self.commitModel();
+	    break;
+
+	case "error-response":
+	    var title = MessageCatalog.getMessage("SAVE_CALENDER_ERROR_TITLE");
+	    var messg = MessageCatalog.getMessage("SAVE_CALENDER_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+	    new MessageBox(MessageBox.ERROR, title, message);
+	    break;
+
+	}
+    }
+    caller.onError = function(req, status) {
+	var title = MessageCatalog.getMessage("SAVE_CALENDER_ERROR_TITLE");
+	var messg = MessageCatalog.getMessage("SAVE_CALENDER_TECH_ERROR", status);
+	new MessageBox(MessageBox.ERROR, title, message);
+    }
+    caller.invokeService(this.model.getDocument());
+
+}
+
+/**
+ * entferne alle als gelöscht markierten elemente (keeper/purifier) und setzen
+ * bei allen mit CREATE oder MODIFY markierten Elementen die Aktion zurück auf
+ * NONE.
+ * 
+ * Im ANschluss wird die WorkingCopy committet
+ */
+MainViewDetails.prototype.commitModel = function() {
+
+    this.model.forEach("//calendar-model/keeper-entries/keeper-entry[action = 'REMOVE']", function(entry) {
+	entry.parentElement.removeChild(entry);
+    });
+    this.model.forEach("//calendar-model/keeper-entries/keeper-entry[action != 'NONE']", function(entry) {
+	entry.getElementsByTagName("action")[0].textContent = "NONE";
+    });
+    this.model.forEach("//calendar-model/purifier-entries/purifier-entry[action = 'REMOVE']", function(entry) {
+	entry.parentElement.removeChild(entry);
+    });
+    this.model.forEach("//calendar-model/purifier-entries/purifier-entry[action != 'NONE']", function(entry) {
+	entry.getElementsByTagName("action")[0].textContent = "NONE";
+    });
+    this.model.commit();
 }
 
 /*---------------------------------------------------------------------------*/
 /**
  * 
  */
-var MainViewDetailsEntry = function(model, entryXPath) {
+var MainViewDetailsKeeperEntry = function(model, entryXPath) {
 
     this.model = model;
     this.entryXPath = entryXPath;
@@ -282,14 +497,16 @@ var MainViewDetailsEntry = function(model, entryXPath) {
     var memberId = this.model.getValue(this.entryXPath + "/keeper");
     this.container.appendChild(this.makeAvatar(memberId));
 
-    this.container.appendChild(this.makeNameSection(memberId));
+    this.nameSection = this.makeNameSection(memberId);
+    this.container.appendChild(this.nameSection);
+
     this.container.appendChild(this.makeTimeSection(memberId));
 }
 
 /**
  * 
  */
-MainViewDetailsEntry.prototype.makeAvatar = function(memberId) {
+MainViewDetailsKeeperEntry.prototype.makeAvatar = function(memberId) {
 
     var img = document.createElement("img");
     img.className = "avatar";
@@ -300,44 +517,47 @@ MainViewDetailsEntry.prototype.makeAvatar = function(memberId) {
 /**
  * 
  */
-MainViewDetailsEntry.prototype.makeNameSection = function(memberId) {
+MainViewDetailsKeeperEntry.prototype.makeNameSection = function(memberId) {
 
     var result = document.createElement("div");
     result.className = "details-namesection";
 
-//    var isEditable = SessionManager.isAdmin() || SessionManager.isMee(memberId);
-//    if (isEditable) {
-//	result.className += " details-content-selectable";
-//
-//	var self = this;
-//	result.addEventListener("click", function() {
-//	    new MemberOverview(self.model, "//get-calendar-ok-rsp/members", function(id) {
-//	    }, memberId);
-//	});
-//    }
-
-    var self = this;
-    var xpath = "//get-calendar-ok-rsp/members/member[id='" + memberId + "']";
-    var fromXML = function(val) {
-	var vname = self.model.getValue(xpath + "/vname");
-	var zname = self.model.getValue(xpath + "/zname");
-	return vname + " " + zname;
-    }
-    this.model.createAttributeBinding(result, "textContent", xpath, null, null, fromXML);
+    var xpath = "//calendar-model/members/member[id='" + memberId + "']";
+    var vname = this.model.getValue(xpath + "/vname");
+    var zname = this.model.getValue(xpath + "/zname");
+    result.textContent = vname + " " + zname;
     return result;
 }
 
 /**
  * 
  */
-MainViewDetailsEntry.prototype.makeTimeSection = function(memberId) {
+MainViewDetailsKeeperEntry.prototype.updateName = function(nameSection) {
+
+    var text = "";
+    var memberId = this.model.getValue(this.entryXPath + "/keeper");
+    if (parseInt(memberId)) {
+	var xpath = "//calendar-model/members/member[id='" + memberId + "']";
+	var vname = this.model.getValue(xpath + "/vname");
+	var zname = this.model.getValue(xpath + "/zname");
+	text = vname + " " + zname;
+    }
+    nameSection.textContent = text;
+}
+
+/**
+ * 
+ */
+MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
 
     var result = document.createElement("div");
     result.className = "details-timesection";
 
     // zeiten
     var from = document.createElement("input");
-    from.className = "details-content-time";
+    from.className = "details-content-time mandatory";
+    from.type = "time";
+    from.title = from.placeholder = "von";
     this.model.createValueBinding(from, this.entryXPath + "/begin");
     result.appendChild(from);
 
@@ -346,7 +566,9 @@ MainViewDetailsEntry.prototype.makeTimeSection = function(memberId) {
     result.appendChild(fill);
 
     var end = document.createElement("input");
-    end.className = "details-content-time";
+    end.className = "details-content-time mandatory";
+    end.type = "time";
+    end.title = end.placeholder = "bis";
     this.model.createValueBinding(end, this.entryXPath + "/end");
     result.appendChild(end);
 
@@ -354,5 +576,50 @@ MainViewDetailsEntry.prototype.makeTimeSection = function(memberId) {
 	from.disabled = end.disabled = true;
     }
 
+    return result;
+}
+
+/*---------------------------------------------------------------------------*/
+/**
+ * 
+ */
+var MainViewDetailsPurifierEntry = function(model, entryXPath) {
+
+    this.model = model;
+    this.entryXPath = entryXPath;
+
+    this.container = document.createElement("div");
+    this.container.className = "details-entry-cnr";
+
+    var memberId = this.model.getValue(this.entryXPath + "/purifier");
+    this.container.appendChild(this.makeAvatar(memberId));
+
+    this.nameSection = this.makeNameSection(memberId);
+    this.container.appendChild(this.nameSection);
+}
+
+/**
+ * 
+ */
+MainViewDetailsPurifierEntry.prototype.makeAvatar = function(memberId) {
+
+    var img = document.createElement("img");
+    img.className = "avatar";
+    img.src = "getDocument/memberImage/?id=" + memberId;
+    return img;
+}
+
+/**
+ * 
+ */
+MainViewDetailsPurifierEntry.prototype.makeNameSection = function(memberId) {
+
+    var result = document.createElement("div");
+    result.className = "details-namesection";
+
+    var xpath = "//calendar-model/members/member[id='" + memberId + "']";
+    var vname = this.model.getValue(xpath + "/vname");
+    var zname = this.model.getValue(xpath + "/zname");
+    result.textContent = vname + " " + zname;
     return result;
 }

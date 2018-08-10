@@ -4,6 +4,7 @@ de.eddies.session.LogonHandler
 de.eddies.session.ChangePWDHandler
 
 de.eddies.mainview.GetCalendarHandler
+de.eddies.mainview.SaveCalendarHandler
 
 de.eddies.member.GetAllMembersHandler
 de.eddies.member.SaveMembersModelHandler

@@ -287,7 +287,7 @@ var MainMenu = (function() {
 
     goAdmin.addEventListener("click", function() {
 	MainMenu.hide();
-	new MemberOverview();
+	new MemberEditor();
     });
 
     /**

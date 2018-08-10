@@ -10,14 +10,12 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
-import de.eddies.member.Member;
 import de.eddies.member.MemberDBUtils;
 import de.eddies.service.ErrorResponse;
 import de.eddies.service.IJAXBObject;
@@ -58,7 +56,7 @@ public class GetCalendarHandler implements IXmlServiceHandler
     {
         Collection<Class<? extends IJAXBObject>> result = new ArrayList<>();
         result.add(Request.class);
-        result.add(Response.class);
+        result.add(CalendarModel.class);
         return result;
     }
 
@@ -69,31 +67,16 @@ public class GetCalendarHandler implements IXmlServiceHandler
     public IJAXBObject handleRequest(IJAXBObject request, SessionWrapper session)
     {
         Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
 
         IJAXBObject result = null;
         Request req = (Request) request;
         try
         {
             conn = ConnectionPool.getConnection();
-            stmt = conn.prepareStatement("select * from cal_entries where date between ? and ? order by date, begin");
-            stmt.setDate(1, req.from);
-            stmt.setDate(2, req.until);
-            rs = stmt.executeQuery();
 
-            Response rsp = new Response();
-            while (rs.next())
-            {
-                CalendarEntry c = new CalendarEntry();
-                c.id = rs.getInt("id");
-                c.date = rs.getDate("date");
-                c.begin = rs.getTime("begin");
-                c.end = rs.getTime("end");
-                c.keeper = rs.getInt("keeper");
-                c.purifier = rs.getInt("purifier");
-                rsp.calEntries.add(c);
-            }
+            CalendarModel rsp = new CalendarModel();
+            rsp.keeperEntries = this.getKeeperTermins(req, conn);
+            rsp.purifierEntries = this.getPurifierTermins(req, conn);
             rsp.members = MemberDBUtils.getAllMembers(conn);
             result = rsp;
         }
@@ -103,11 +86,81 @@ public class GetCalendarHandler implements IXmlServiceHandler
         }
         finally
         {
-            DBUtils.closeQuitly(rs);
-            DBUtils.closeQuitly(stmt);
             DBUtils.closeQuitly(conn);
         }
         return result;
+    }
+    
+    /**
+     * @param req
+     * @param conn
+     * @return
+     * @throws SQLException 
+     */
+    private List<KeeperTermin> getKeeperTermins(Request req, Connection conn) throws SQLException {
+        
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            stmt = conn.prepareStatement("select * from keeper_termine where date between ? and ? order by date, begin");
+            stmt.setDate(1, req.from);
+            stmt.setDate(2, req.until);
+            rs = stmt.executeQuery();
+
+            List<KeeperTermin> result = new ArrayList<>();
+            while (rs.next())
+            {
+                KeeperTermin c = new KeeperTermin();
+                c.id = rs.getInt("id");
+                c.date = rs.getDate("date");
+                c.begin = rs.getTime("begin");
+                c.end = rs.getTime("end");
+                c.member = rs.getInt("member");
+                result.add(c);
+            }       
+            return result;
+        }
+        finally
+        {
+            DBUtils.closeQuitly(rs);
+            DBUtils.closeQuitly(stmt);
+        }
+    }
+
+    /**
+     * @param req
+     * @param conn
+     * @return
+     * @throws SQLException 
+     */
+    private List<PurifierTermin> getPurifierTermins(Request req, Connection conn) throws SQLException {
+        
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            stmt = conn.prepareStatement("select * from purifier_termine where date between ? and ? order by date");
+            stmt.setDate(1, req.from);
+            stmt.setDate(2, req.until);
+            rs = stmt.executeQuery();
+
+            List<PurifierTermin> result = new ArrayList<>();
+            while (rs.next())
+            {
+                PurifierTermin c = new PurifierTermin();
+                c.id = rs.getInt("id");
+                c.date = rs.getDate("date");
+                c.member = rs.getInt("member");
+                result.add(c);
+            }       
+            return result;
+        }
+        finally
+        {
+            DBUtils.closeQuitly(rs);
+            DBUtils.closeQuitly(stmt);
+        }
     }
 
     /**
@@ -124,21 +177,5 @@ public class GetCalendarHandler implements IXmlServiceHandler
         @XmlElement(name = "until")
         @XmlJavaTypeAdapter(value = SQLDateXMLAdapter.class)
         public Date until;
-    }
-
-    /**
-     * Das Antwort-Objekt für den OK-Fall
-     */
-    @XmlRootElement(name = "get-calendar-ok-rsp")
-    @XmlType(name = "GetCalendarHandler.Response")
-    public static class Response implements IJAXBObject
-    {
-        @XmlElementWrapper(name = "entries")
-        @XmlElement(name = "entry")
-        List<CalendarEntry> calEntries = new ArrayList<>();
-
-        @XmlElementWrapper(name = "members")
-        @XmlElement(name = "member")
-        List<Member> members = new ArrayList<>();
     }
 }

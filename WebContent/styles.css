@@ -22,6 +22,7 @@ html, body {
 	-moz-user-select: none;
 	user-select: none;
 	max-width: 100%;
+	height: 100%;
 }
 
 body {
@@ -402,15 +403,25 @@ td:last-child {
 
 .avatar {
 	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
 	flex: 0 auto;
-	width: 64px;
-	height: 64px;
+	width: 32px;
+	height: 32px;
 	background-repeat: no-repeat;
 	background-position: center center;
-	background-size: 64px 64px;
-	width: 64px;
+	background-size: 100%;
 	border-radius: 50%;
 	border: 1px solid #d0d0d0;
+	margin-right: 10px;
+	background-color: white;
+}
+
+@media only screen and (min-width: 600px) {
+	.avatar {
+		width: 64px;
+		height: 64px;
+	}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -558,12 +569,15 @@ td:last-child {
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	visibility: hidden;
 	height: 0;
 	transition: height 0.25s;
 }
 
 .workspace-frame:last-child {
 	height: 100%;
+	visibility: visible;
+	transition: height 0.25s;
 }
 
 .workspace-frame-body {
@@ -616,6 +630,7 @@ td:last-child {
 
 .workspace-frame-action>img {
 	width: 32px;
+	height: 32px;
 }
 
 .workspace-frame-action:active>img {
@@ -630,20 +645,6 @@ td:last-child {
 	-webkit-flex-direction: row;
 	-webkit-justify-content: flex-end;
 	justify-content: flex-end;
-}
-
-.workspace-frame-content-header {
-	padding: 10px;
-	-webkit-flex: 0 auto;
-	flex: 0 auto;
-	border-bottom: 1px solid #d0d0d0;
-	display: -webkit-flex;
-	display: flex;
-	-webkit-flex-direction: row;
-	flex-direction: row;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	font-weight: 600;
 }
 
 .workspace-frame-content-body {
@@ -812,36 +813,6 @@ td:last-child {
 	background-image: url('gui/images/go-fore.svg');
 }
 
-.calendar-navi-button {
-	border: 1px solid transparent;
-	border-radius: 2px;
-	-webkit-flex: 0 auto;
-	flex: 0 auto;
-	min-width: 32px;
-	min-height: 32px;
-	background-position: center center;
-	background-size: 32px 32px;
-	background-repeat: no-repeat;
-}
-
-.calendar-navi-button:hover {
-	transform: scale(1.1, 1.1);
-}
-
-.calendar-navi-button:active {
-	transform: translate(1px, 1px);
-}
-
-.calendar-navi-title {
-	padding: 10px;
-	-webkit-flex: 1;
-	flex: 1;
-	text-align: center;
-	font-weight: 600;
-	margin: auto 0 auto 0;
-	white-space: nowrap;
-}
-
 .calendar-day {
 	padding: 5px 0 5px 0;
 	-webkit-flex: 1;
@@ -896,17 +867,42 @@ td:last-child {
 /**
  * all about the details view
  */
-#mainview-details-body>input[type='radio']:checked+.details-entry-cnr {
+.details-section-title {
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
+	background-color: #f0f0f0;	
+	font-weight: 600;
+	padding: 5px;
+}
+
+.details-section-body {
+	
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+	overflow: auto;
+	padding: 5px;
+}
+
+.details-section-body>input[type='radio']:checked+.details-entry-cnr {
 	-webkit-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 	-moz-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 	-ms-box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 	box-shadow: 0px 0px 4px 0px rgba(192, 192, 192, 1);
 }
 
+
 .details-entry-cnr {
 	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
 	display: flex;
 	-webkit-flex-direction: row;
+	-moz-flex-direction: row;
+	-ms-flex-direction: row;
 	flex-direction: row;
 	padding: 5px;
 	margin-bottom: 5px;
@@ -918,6 +914,8 @@ td:last-child {
 
 .details-content-cnr {
 	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
 	flex: 1;
 	font-weight: 600;
 	padding-left: 10px;
@@ -941,9 +939,10 @@ td:last-child {
 
 .details-namesection {
 	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
 	flex: 1;
 	font-weight: 600;
-	padding-left: 10px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
@@ -956,7 +955,7 @@ td:last-child {
 }
 
 .details-content-time {
-	width: 3.5em;
+    max-width: 6em;
 }
 
 .details-content-time:focus: {
@@ -1010,11 +1009,8 @@ td:last-child {
 	-moz-flex: 0 auto;
 	-ms-flex: 0 auto;
 	flex: 0 auto;
-	width: 64px;
-	height: 64px;
 	border: 1px solid #d0d0d0;
 	border-radius: 50%;
-	width: 64px;
 }
 
 .member-overview-title-row>span {

@@ -1,12 +1,8 @@
 /**
- * Zeigt alle Member an
- * 
- * @param onselect
- *                wird aufgerufen, wenn ein member aus der Übersicht ausgewählt
- *                wurde. optional
+ * Editor
  * 
  */
-var MemberOverview = function(onselect) {
+var MemberEditor = function() {
 
     var self = this;
     WorkSpaceFrame.call(this, "gui/member_view/member_overview.html", function() {
@@ -26,12 +22,12 @@ var MemberOverview = function(onselect) {
 	});
     });
 }
-MemberOverview.prototype = Object.create(WorkSpaceFrame.prototype);
+MemberEditor.prototype = Object.create(WorkSpaceFrame.prototype);
 
 /**
  * 
  */
-MemberOverview.prototype.getTitle = function() {
+MemberEditor.prototype.getTitle = function() {
 
     return "Crew verwalten";
 }
@@ -39,14 +35,14 @@ MemberOverview.prototype.getTitle = function() {
 /**
  * 
  */
-MemberOverview.prototype.createAddAction = function() {
+MemberEditor.prototype.createAddAction = function() {
 
     var self = this;
     var action = this.createToolButton("gui/images/person-add.svg", "Person hinzu fügen", function() {
 
-	var doc = XmlUtils.parse(MemberOverview.EMPTY_ENTRY);
+	var doc = XmlUtils.parse(MemberEditor.EMPTY_ENTRY);
 	self.currXPath = self.model.addElement("//members-model/members", doc.documentElement);
-	self.currEntry = new MemberOverviewEntry(self.model, self.currXPath);
+	self.currEntry = new MemberEditorEntry(self.model, self.currXPath);
 	UIUtils.getElement("member-overview-body").appendChild(self.currEntry.container);
 	self.currEntry.container.addEventListener("click", function() {
 	    self.actionRemove.show();
@@ -55,12 +51,12 @@ MemberOverview.prototype.createAddAction = function() {
     });
     return action;
 }
-MemberOverview.EMPTY_ENTRY = "<member><id/><action>CREATE</action><zname/><vname/><phone/><mobile/><email/><sex/></member>";
+MemberEditor.EMPTY_ENTRY = "<member><id/><action>CREATE</action><zname/><vname/><phone/><mobile/><email/><sex/><role/></member>";
 
 /**
  * 
  */
-MemberOverview.prototype.createRemoveAction = function() {
+MemberEditor.prototype.createRemoveAction = function() {
 
     var self = this;
     var action = this.createToolButton("gui/images/person-remove.svg", "Person entfernen", function() {
@@ -86,7 +82,7 @@ MemberOverview.prototype.createRemoveAction = function() {
 /**
  * 
  */
-MemberOverview.prototype.loadModel = function(onsuccess) {
+MemberEditor.prototype.loadModel = function(onsuccess) {
 
     var self = this;
     var caller = new ServiceCaller();
@@ -117,7 +113,7 @@ MemberOverview.prototype.loadModel = function(onsuccess) {
 /**
  * 
  */
-MemberOverview.prototype.fillTable = function(memberId) {
+MemberEditor.prototype.fillTable = function(memberId) {
 
     var self = this;
     var allMember = this.model.evaluateXPath("//members-model/members/member");
@@ -126,15 +122,19 @@ MemberOverview.prototype.fillTable = function(memberId) {
 	var xpath = XmlUtils.getXPathTo(allMember[i]);
 	var entry = this.createOneEntry(xpath);
 	UIUtils.getElement("member-overview-body").appendChild(entry.container);
+
+	if (i == 0) {
+	    entry.container.focus();
+	}
     }
 }
 
 /**
  * 
  */
-MemberOverview.prototype.createOneEntry = function(xpath) {
+MemberEditor.prototype.createOneEntry = function(xpath) {
 
-    var entry = new MemberOverviewEntry(this.model, xpath);
+    var entry = new MemberEditorEntry(this.model, xpath);
 
     var memberId = this.model.getValue(xpath + "/id");
     if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
@@ -159,7 +159,7 @@ MemberOverview.prototype.createOneEntry = function(xpath) {
 /**
  * 
  */
-MemberOverview.prototype.onSave = function() {
+MemberEditor.prototype.onSave = function() {
 
     var self = this;
     var caller = new ServiceCaller();
@@ -187,7 +187,7 @@ MemberOverview.prototype.onSave = function() {
 /**
  * 
  */
-var MemberOverviewEntry = function(model, memberXPath) {
+var MemberEditorEntry = function(model, memberXPath) {
 
     this.model = model;
     this.memberXPath = memberXPath;
@@ -229,7 +229,7 @@ var MemberOverviewEntry = function(model, memberXPath) {
 /**
  * 
  */
-MemberOverviewEntry.prototype.createRadio = function() {
+MemberEditorEntry.prototype.createRadio = function() {
 
     var radio = document.createElement("input");
     radio.type = "radio";
@@ -242,7 +242,7 @@ MemberOverviewEntry.prototype.createRadio = function() {
 /**
  * 
  */
-MemberOverviewEntry.prototype.createTitleRow = function(radio) {
+MemberEditorEntry.prototype.createTitleRow = function(radio) {
 
     var result = document.createElement("div");
     result.className = "member-overview-title-row";
@@ -266,13 +266,15 @@ MemberOverviewEntry.prototype.createTitleRow = function(radio) {
 /**
  * 
  */
-MemberOverviewEntry.prototype.createImage = function() {
+MemberEditorEntry.prototype.createImage = function() {
 
     var self = this;
     var img = document.createElement("img");
+    img.className = "avatar";
+    img.title = "Hier klicken um das Bild zu ändern";
     img.src = "getDocument/memberImage?id=" + this.model.getValue(this.memberXPath + "/id");
     if (this.isEditable) {
-	img.className = "clickable";
+	UIUtils.addClass(img, "clickable");
 	new FilePicker(img, function(name, type, data) {
 	    self.model.addValue(self.memberXPath, "img", data);
 	    self.model.addValue(self.memberXPath, "img-type", type);
@@ -286,7 +288,7 @@ MemberOverviewEntry.prototype.createImage = function() {
  * 
  * 
  */
-MemberOverviewEntry.prototype.createLabel = function() {
+MemberEditorEntry.prototype.createLabel = function() {
 
     var result = document.createElement("span");
     var self = this;
@@ -303,7 +305,7 @@ MemberOverviewEntry.prototype.createLabel = function() {
  * 
  * 
  */
-MemberOverviewEntry.prototype.createNameRow = function() {
+MemberEditorEntry.prototype.createNameRow = function() {
 
     var row = document.createElement("div");
     row.className = "grid-row-0";
@@ -318,7 +320,7 @@ MemberOverviewEntry.prototype.createNameRow = function() {
  * 
  * 
  */
-MemberOverviewEntry.prototype.createSexSelector = function() {
+MemberEditorEntry.prototype.createSexSelector = function() {
 
     var select = document.createElement("select");
     select.className = "grid-col-1";
@@ -353,7 +355,7 @@ MemberOverviewEntry.prototype.createSexSelector = function() {
  * 
  * 
  */
-MemberOverviewEntry.prototype.createRoleSelector = function() {
+MemberEditorEntry.prototype.createRoleSelector = function() {
 
     var select = document.createElement("select");
     select.className = "grid-col-1 mandatory";
@@ -383,7 +385,7 @@ MemberOverviewEntry.prototype.createRoleSelector = function() {
  * 
  * 
  */
-MemberOverviewEntry.prototype.createPhoneRow = function() {
+MemberEditorEntry.prototype.createPhoneRow = function() {
 
     var row = document.createElement("div");
     row.className = "grid-row-0";
@@ -398,7 +400,7 @@ MemberOverviewEntry.prototype.createPhoneRow = function() {
  * 
  * 
  */
-MemberOverviewEntry.prototype.createMailRow = function() {
+MemberEditorEntry.prototype.createMailRow = function() {
 
     var row = document.createElement("div");
     row.className = "grid-row-0";
@@ -413,7 +415,7 @@ MemberOverviewEntry.prototype.createMailRow = function() {
  * ist, dann wird ein InputField generiert, anderenfalls ein span.
  * 
  */
-MemberOverviewEntry.prototype.makeField = function(xpath, gridClasses, editClasses, title) {
+MemberEditorEntry.prototype.makeField = function(xpath, gridClasses, editClasses, title) {
 
     var result = document.createElement("input");
     result.title = result.placeholder = title;
@@ -430,10 +432,129 @@ MemberOverviewEntry.prototype.makeField = function(xpath, gridClasses, editClass
 /*
  * 
  */
-MemberOverviewEntry.prototype.select = function() {
+MemberEditorEntry.prototype.select = function() {
 
     this.radio.click();
     if (this.isEditable) {
 	this.container.querySelector(".mandatory").focus();
     }
+}
+
+/*---------------------------------------------------------------------------*/
+/**
+ * Zeigt alle Member an
+ * 
+ * @param onselect wird gerufen, wenn ein Member ausgewählt wurde
+ * 
+ */
+var MemberSelector = function(onselect) {
+    
+    this.onselect = onselect;
+    var self = this;
+    WorkSpaceFrame.call(this, "gui/member_view/member_selector.html", function() {
+
+	self.loadModel(function() {
+	    self.fillTable();
+	});
+    });
+}
+MemberSelector.prototype = Object.create(WorkSpaceFrame.prototype);
+
+/**
+ * 
+ */
+MemberSelector.prototype.getTitle = function() {
+
+    return "Ein Team-Mitglied auswählen";
+}
+
+/**
+ * 
+ */
+MemberSelector.prototype.loadModel = function(onsuccess) {
+
+    var self = this;
+    var caller = new ServiceCaller();
+    caller.onSuccess = function(rsp) {
+	switch (rsp.documentElement.nodeName) {
+	case "members-model":
+	    self.model = new Model(rsp);
+	    onsuccess();
+	    break;
+
+	case "error-response":
+	    var title = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_ERROR_TITLE");
+	    var messg = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+	    new MessageBox(MessageBox.ERROR, title, messg);
+	    break;
+	}
+    }
+    caller.onError = function(req, status) {
+	var title = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_ERROR_TITLE");
+	var messg = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_TECH_ERROR", status);
+	new MessageBox(MessageBox.ERROR, title, messg);
+    }
+
+    var req = XmlUtils.createDocument("get-all-members-req");
+    caller.invokeService(req);
+}
+
+/**
+ * 
+ */
+MemberSelector.prototype.fillTable = function(memberId) {
+
+    var self = this;
+    var allMember = this.model.evaluateXPath("//members-model/members/member");
+    for (var i = 0; i < allMember.length; i++) {
+
+	var xpath = XmlUtils.getXPathTo(allMember[i]);
+	var entry = this.createOneEntry(xpath);
+	UIUtils.getElement("member-selector-body").appendChild(entry);
+    }
+}
+
+/**
+ * 
+ */
+MemberSelector.prototype.createOneEntry = function(xpath) {
+
+    var self = this;
+    
+    var result = document.createElement("div");
+    result.className = "member-overview-title-row";
+    result.appendChild(this.createImage(xpath));
+    result.appendChild(this.createLabel(xpath));    
+
+    result.addEventListener("click", function() {
+	
+	self.close();
+	var id = self.model.getValue(xpath + "/id");
+	self.onselect(id);
+    });
+    return result;
+}
+
+/**
+ * 
+ */
+MemberSelector.prototype.createImage = function(xpath) {
+
+    var img = document.createElement("img");
+    img.className = "avatar";
+    img.src = "getDocument/memberImage?id=" + this.model.getValue(xpath + "/id");
+    return img;
+}
+
+/*
+ * 
+ * 
+ */
+MemberSelector.prototype.createLabel = function(xpath) {
+
+    var result = document.createElement("span");
+    var vname = this.model.getValue(xpath + "/vname");
+    var zname = this.model.getValue(xpath + "/zname");
+    result.textContent = vname + " " + zname;
+    return result;
 }
