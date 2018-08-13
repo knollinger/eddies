@@ -32,9 +32,8 @@
 					<div id="main-menu-logout" class="main-menu-item">Abmelden</div>
 					<div id="main-menu-change-pwd" class="main-menu-item">Kennwort
 						ändern</div>
-					<hr>
-					<div id="main-menu-usermgmt" class="main-menu-item">Crew
-						verwalten</div>
+					<hr id="main-menu-separator">
+					<div id="main-menu-usermgmt" class="main-menu-item">Administration</div>
 
 				</div>
 			</div>
@@ -42,6 +41,9 @@
 		</div>
 		<div class="workspace-header"></div>
 		<div id="workspace-body"></div>
+		<div id="busy-indicator" class="busy-indicator">
+			<img src="gui//images/spin.gif" />
+		</div>
 	</div>
 </body>
 
@@ -63,6 +65,7 @@
 <script type="text/javascript" src="gui/session/login_view.js"></script>
 <script type="text/javascript" src="gui/main_view/main_view.js"></script>
 
+<script type="text/javascript" src="gui/admin/admin.js"></script>
 <script type="text/javascript" src="gui/member_view/member.js"></script>
 
 </html>

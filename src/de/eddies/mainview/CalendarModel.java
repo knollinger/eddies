@@ -8,7 +8,6 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import de.eddies.member.Member;
 import de.eddies.service.IJAXBObject;
 
 /**
@@ -25,8 +24,4 @@ public class CalendarModel implements IJAXBObject
     @XmlElementWrapper(name = "purifier-entries")
     @XmlElement(name = "purifier-entry")
     List<PurifierTermin> purifierEntries = new ArrayList<>();
-
-    @XmlElementWrapper(name = "members")
-    @XmlElement(name = "member")
-    List<Member> members = new ArrayList<>();
 }

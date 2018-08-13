@@ -35,6 +35,12 @@ MainViewCalendar.prototype.setupUI = function() {
 	self.currentDate.setDate(self.currentDate.getDate() - 7);
 	self.update();
     });
+    
+    this.createToolButton("gui/images/calendar-today.svg", "Gehe zu heute", function() {
+	self.currentDate = new Date();
+	self.update();
+    });
+    
     this.createToolButton("gui/images/go-fore.svg", "Eine Woche vor", function() {
 	self.currentDate.setDate(self.currentDate.getDate() + 7);
 	self.update();
@@ -227,14 +233,48 @@ var MainViewDetails = function(model, day) {
 	self.actionAddKeeper = self.createAddKeeperAction();
 	self.actionAddPurifier = self.createAddPurifierAction();
 	self.actionRemove = self.createRemoveAction();
-	var observingXPath = "//calendar-model";
-	self.model.addChangeListener(observingXPath, function() {
-	    self.enableSaveButton(true);
+
+	self.loadMemberModel(function() {
+	    var observingXPath = "//calendar-model";
+	    self.model.addChangeListener(observingXPath, function() {
+		self.enableSaveButton(true);
+	    });
+	    self.update();
 	});
-	self.update();
     });
 }
 MainViewDetails.prototype = Object.create(WorkSpaceFrame.prototype);
+
+/**
+ * 
+ */
+MainViewDetails.prototype.loadMemberModel = function(onsuccess) {
+    
+    var self = this;
+    var caller = new ServiceCaller();
+    caller.onSuccess = function(rsp) {
+	switch (rsp.documentElement.nodeName) {
+	case "members-model":
+	    self.memberModel = new Model(rsp);
+	    onsuccess();
+	    break;
+
+	case "error-response":
+	    var title = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_ERROR_TITLE");
+	    var messg = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+	    new MessageBox(MessageBox.ERROR, title, messg);
+	    break;
+	}
+    }
+    caller.onError = function(req, status) {
+	var title = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_ERROR_TITLE");
+	var messg = MessageCatalog.getMessage("LOAD_MEMBEROVERVIEW_TECH_ERROR", status);
+	new MessageBox(MessageBox.ERROR, title, messg);
+    }
+
+    var req = XmlUtils.createDocument("get-all-members-req");
+    caller.invokeService(req);
+}
 
 /**
  * 
@@ -348,7 +388,7 @@ MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
     radio.name = "mainview_details_entry";
     UIUtils.getElement("mainview-details-keepers").appendChild(radio);
 
-    var entry = new MainViewDetailsKeeperEntry(this.model, entryXPath);
+    var entry = new MainViewDetailsKeeperEntry(this.model, entryXPath, this.memberModel);
     var entryUI = entry.container;
     UIUtils.getElement("mainview-details-keepers").appendChild(entryUI);
 
@@ -405,7 +445,7 @@ MainViewDetails.prototype.fillOnePurifier = function(entryXPath) {
     radio.name = "mainview_details_entry";
     UIUtils.getElement("mainview-details-purifiers").appendChild(radio);
 
-    var entry = new MainViewDetailsPurifierEntry(this.model, entryXPath);
+    var entry = new MainViewDetailsPurifierEntry(this.model, entryXPath, this.memberModel);
     var entryUI = entry.container;
     UIUtils.getElement("mainview-details-purifiers").appendChild(entryUI);
 
@@ -486,10 +526,11 @@ MainViewDetails.prototype.commitModel = function() {
 /**
  * 
  */
-var MainViewDetailsKeeperEntry = function(model, entryXPath) {
+var MainViewDetailsKeeperEntry = function(model, entryXPath, memberModel) {
 
     this.model = model;
     this.entryXPath = entryXPath;
+    this.memberModel = memberModel;
 
     this.container = document.createElement("div");
     this.container.className = "details-entry-cnr";
@@ -522,27 +563,11 @@ MainViewDetailsKeeperEntry.prototype.makeNameSection = function(memberId) {
     var result = document.createElement("div");
     result.className = "details-namesection";
 
-    var xpath = "//calendar-model/members/member[id='" + memberId + "']";
-    var vname = this.model.getValue(xpath + "/vname");
-    var zname = this.model.getValue(xpath + "/zname");
+    var xpath = "//members-model/members/member[id='" + memberId + "']";
+    var vname = this.memberModel.getValue(xpath + "/vname");
+    var zname = this.memberModel.getValue(xpath + "/zname");
     result.textContent = vname + " " + zname;
     return result;
-}
-
-/**
- * 
- */
-MainViewDetailsKeeperEntry.prototype.updateName = function(nameSection) {
-
-    var text = "";
-    var memberId = this.model.getValue(this.entryXPath + "/keeper");
-    if (parseInt(memberId)) {
-	var xpath = "//calendar-model/members/member[id='" + memberId + "']";
-	var vname = this.model.getValue(xpath + "/vname");
-	var zname = this.model.getValue(xpath + "/zname");
-	text = vname + " " + zname;
-    }
-    nameSection.textContent = text;
 }
 
 /**
@@ -583,10 +608,11 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
 /**
  * 
  */
-var MainViewDetailsPurifierEntry = function(model, entryXPath) {
+var MainViewDetailsPurifierEntry = function(model, entryXPath, memberModel) {
 
     this.model = model;
     this.entryXPath = entryXPath;
+    this.memberModel = memberModel;
 
     this.container = document.createElement("div");
     this.container.className = "details-entry-cnr";
@@ -617,9 +643,9 @@ MainViewDetailsPurifierEntry.prototype.makeNameSection = function(memberId) {
     var result = document.createElement("div");
     result.className = "details-namesection";
 
-    var xpath = "//calendar-model/members/member[id='" + memberId + "']";
-    var vname = this.model.getValue(xpath + "/vname");
-    var zname = this.model.getValue(xpath + "/zname");
+    var xpath = "//members-model/members/member[id='" + memberId + "']";
+    var vname = this.memberModel.getValue(xpath + "/vname");
+    var zname = this.memberModel.getValue(xpath + "/zname");
     result.textContent = vname + " " + zname;
     return result;
 }

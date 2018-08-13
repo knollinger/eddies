@@ -287,7 +287,7 @@ var MainMenu = (function() {
 
     goAdmin.addEventListener("click", function() {
 	MainMenu.hide();
-	new MemberEditor();
+	new AdminView();
     });
 
     /**
@@ -297,6 +297,7 @@ var MainMenu = (function() {
 	UIUtils.addClass(login, "hidden");
 	UIUtils.removeClass(logout, "hidden");
 	UIUtils.removeClass(changePwd, "hidden");
+	UIUtils.removeClass("main-menu-separator", "hidden");
 	UIUtils.removeClass(goAdmin, "hidden");
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
@@ -309,6 +310,7 @@ var MainMenu = (function() {
 	UIUtils.removeClass(login, "hidden");
 	UIUtils.addClass(logout, "hidden");
 	UIUtils.addClass(changePwd, "hidden");
+	UIUtils.addClass("main-menu-separator", "hidden");
 	UIUtils.addClass(goAdmin, "hidden");
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
