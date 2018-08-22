@@ -726,7 +726,7 @@ MainViewDetails.prototype.commitModel = function() {
 	entry.getElementsByTagName("action")[0].textContent = "NONE";
     });
     this.model.forEach("//calendar-model/purifier-entries/purifier-entry[action = 'REMOVE']", function(entry) {
-	entry.parentElement.removeChild(entry);
+	entry.parentNode.removeChild(entry);
     });
     this.model.forEach("//calendar-model/purifier-entries/purifier-entry[action != 'NONE']", function(entry) {
 	entry.getElementsByTagName("action")[0].textContent = "NONE";

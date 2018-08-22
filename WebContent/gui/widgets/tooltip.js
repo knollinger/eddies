@@ -114,7 +114,7 @@ ToolTip.prototype.createUIElement = function(iconUrl, msg) {
 ToolTip.prototype.close = function() {
 
     window.clearTimeout(this.timer);
-    var parent = this.uiElem.parentElement;
+    var parent = this.uiElem.parentNode;
     if (parent) {
 	parent.removeChild(this.uiElem);
     }

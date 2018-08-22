@@ -101,7 +101,7 @@ var UIUtils = (function() {
 
 	    var from = UIUtils.getElement(element);
 	    while (from.nextSibling) {
-		element.parentElement.removeChild(from.nextSibling);
+		element.parentNode.removeChild(from.nextSibling);
 	    }
 	},
 
@@ -116,8 +116,8 @@ var UIUtils = (function() {
 	removeSiblingsBefore : function(element) {
 
 	    var until = UIUtils.getElement(element);
-	    while (until.parentElement.firstChild != null && until.parentElement.firstChild != until) {
-		until.parentElement.firstChild(until.parentElement.firstChild);
+	    while (until.parentNode.firstChild != null && until.parentNode.firstChild != until) {
+		until.parentNode.firstChild(until.parentNode.firstChild);
 	    }
 	},
 
@@ -131,8 +131,8 @@ var UIUtils = (function() {
 	 */
 	removeElement : function(element) {
 	    var node = UIUtils.getElement(element);
-	    if (node.parentElement) {
-		node.parentElement.removeChild(node);
+	    if (node.parentNode) {
+		node.parentNode.removeChild(node);
 	    }
 	},
 
