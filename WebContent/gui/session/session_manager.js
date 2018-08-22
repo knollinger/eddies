@@ -13,8 +13,12 @@ var SessionManager = (function() {
 	logout : function() {
 
 	    model = null;
-	    new ServiceCaller().invokeService(XmlUtils.createDocument("logout-request"));
-	    window.location = "index.html";
+	    var caller = new ServiceCaller();
+	    caller.onSuccess = function() {
+		window.location = "index.html";		
+	    }
+	    caller.invokeService(XmlUtils.createDocument("logout-request"));
+	    
 	},
 
 	/**

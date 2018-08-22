@@ -408,7 +408,7 @@ Model.prototype.removeElement = function(xPath) {
     var target = this.evaluateXPath(xPath)[0];
     if (target) {
 
-	var parent = target.parentElement;
+	var parent = target.parentNode;
 	parent.removeChild(target);
 	this.fireXmlEvent(parent);
     }

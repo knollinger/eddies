@@ -49,14 +49,17 @@ textarea {
 select {
 	border: 1px solid #d0d0d0;
 	background-color: white;
+	padding: 4px 30px 4px 4px;
+	background: transparent url("gui/images/dropdown-markup.png") no-repeat
+		right center;
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	-ms-appearance: none;
 	appearance: none;
-	padding: 4px 30px 4px 4px;
-	background: transparent url("gui/images/dropdown-markup.png") no-repeat
-		right center;
-	appearance: none;
+}
+
+select::-ms-expand {
+    display: none;
 }
 
 select:disabled {
@@ -1114,7 +1117,8 @@ td:last-child {
 }
 
 .calendar-has-purifier {
-	background: transparent url("gui/images/purifier.svg") no-repeat right bottom;
+	background: transparent url("gui/images/purifier.svg") no-repeat right
+		bottom;
 	background-size: 24px;
 }
 

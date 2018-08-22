@@ -720,7 +720,7 @@ MainViewDetails.prototype.onSave = function() {
 MainViewDetails.prototype.commitModel = function() {
 
     this.model.forEach("//calendar-model/keeper-entries/keeper-entry[action = 'REMOVE']", function(entry) {
-	entry.parentElement.removeChild(entry);
+	entry.parentNode.removeChild(entry);
     });
     this.model.forEach("//calendar-model/keeper-entries/keeper-entry[action != 'NONE']", function(entry) {
 	entry.getElementsByTagName("action")[0].textContent = "NONE";
@@ -793,7 +793,8 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
     // zeiten
     var from = document.createElement("input");
     from.className = "mandatory";
-    from.type = "time";
+    from.setAttribute("type", "time");
+//    from.type = "time";
     from.title = from.placeholder = "von";
     this.model.createValueBinding(from, this.entryXPath + "/begin");
     result.appendChild(from);
@@ -804,7 +805,8 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
 
     var end = document.createElement("input");
     end.className = "mandatory";
-    end.type = "time";
+    end.setAttribute("type", "time");
+//    end.type = "time";
     end.title = end.placeholder = "bis";
     this.model.createValueBinding(end, this.entryXPath + "/end");
     result.appendChild(end);

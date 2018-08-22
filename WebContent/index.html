@@ -10,7 +10,9 @@
 
 <script>
     function init() {
+	console.log("");
 
+	wgxpath.install();
 	SessionManager.checkSessionState(function() {
 	    new MainViewCalendar();
 	}, function() {
@@ -47,6 +49,7 @@
 	</div>
 </body>
 
+<script src="gui/utils/wgxpath.install.js"></script>
 <script type="text/javascript" src="gui/utils/array_utils.js"></script>
 <script type="text/javascript" src="gui/utils/uiutils.js"></script>
 <script type="text/javascript" src="gui/utils/date_time_utils.js"></script>

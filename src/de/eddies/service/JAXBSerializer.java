@@ -31,6 +31,7 @@ public class JAXBSerializer
     {
         JAXBSerializer.registeredClasses = new HashSet<Class<? extends IJAXBObject>>();
         JAXBSerializer.registeredClasses.add(ErrorResponse.class);
+        JAXBSerializer.registeredClasses.add(SessionLostResponse.class);
     }
     
     /**

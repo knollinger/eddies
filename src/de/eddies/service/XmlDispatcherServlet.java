@@ -61,7 +61,6 @@ public class XmlDispatcherServlet extends HttpServlet
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-
         try
         {
             IJAXBObject reqObj = JAXBSerializer.readObject(request.getInputStream());
@@ -79,7 +78,7 @@ public class XmlDispatcherServlet extends HttpServlet
                 SessionWrapper session = new SessionWrapper(request.getSession());
                 if (handler.needSession() && !session.isValid())
                 {
-                    rspObj = new ErrorResponse("");
+                    rspObj = new SessionLostResponse();
                 }
                 else
                 {

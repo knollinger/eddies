@@ -119,12 +119,12 @@ var XmlUtils = (function() {
 	    if (element === element.ownerDocument.documentElement) {
 		return "/" + element.nodeName;
 	    } else {
-		var sibs = element.parentElement.children;
+		var sibs = element.parentNode.childNodes;
 
 		var idx = 1;
 		for (var i = 0; i < sibs.length; i++) {
 		    if (sibs[i] == element) {
-			var currPath = XmlUtils.getXPathTo(element.parentElement) + "/" + element.nodeName + "[" + idx + "]";
+			var currPath = XmlUtils.getXPathTo(element.parentNode) + "/" + element.nodeName + "[" + idx + "]";
 			return currPath;
 		    } else {
 			if (sibs[i].nodeName == element.nodeName) {

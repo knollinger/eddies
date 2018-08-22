@@ -29,8 +29,8 @@ function ServiceCaller() {
 
         BusyIndicator.show();
         
+        var self = this;
         var xhr = new XMLHttpRequest();
-        xhr.svcCaller = this;
         xhr.open("POST", "xmlservice", true);
         xhr.onreadystatechange = function(evt) {
 
@@ -50,14 +50,14 @@ function ServiceCaller() {
                         });
                     }
                     else {
-                        if (this.svcCaller.onSuccess != null) {
-                            this.svcCaller.onSuccess(response);
+                        if (self.onSuccess != null) {
+                            self.onSuccess(response);
                         }
                     }
                 } else {
 
-                    if (this.svcCaller.onError != null) {
-                        this.svcCaller.onError(request, xhr.status);
+                    if (self.onError != null) {
+                        self.onError(request, xhr.status);
                     }
                 }
             }

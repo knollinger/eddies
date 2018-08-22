@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -9,15 +10,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="128"
-   height="128"
+   viewBox="0 0 128 128"
    id="svg2606"
    sodipodi:version="0.32"
-   inkscape:version="0.45+devel"
+   inkscape:version="0.91 r13725"
    version="1.0"
-   sodipodi:docname="go-previous.svgz"
+   sodipodi:docname="go-back.svg"
    inkscape:output_extension="org.inkscape.output.svgz.inkscape"
-   sodipodi:docbase="/home/pinheiro/artwork/Oxygen/scribus/scalable"
    inkscape:export-filename="/home/pinheiro/pics/oxygen/scalable/actions/go-next.png"
    inkscape:export-xdpi="180"
    inkscape:export-ydpi="180">
@@ -848,29 +847,22 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.8671875"
      inkscape:cx="157.79223"
-     inkscape:cy="8.6239481"
+     inkscape:cy="51.469136"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="128px"
      height="128px"
-     gridspacingx="4px"
-     gridspacingy="4px"
-     gridempspacing="2"
      showgrid="false"
      inkscape:grid-points="true"
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:window-width="1016"
      inkscape:window-height="692"
-     inkscape:window-x="360"
-     inkscape:window-y="67">
-    <inkscape:grid
-       type="xygrid"
-       id="grid2576"
-       spacingx="4px"
-       spacingy="4px"
-       empspacing="2" />
-  </sodipodi:namedview>
+     inkscape:window-x="856"
+     inkscape:window-y="221"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata2611">
     <rdf:RDF>
@@ -879,6 +871,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
