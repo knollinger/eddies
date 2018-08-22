@@ -131,6 +131,7 @@ Model.prototype.createAttributeBinding = function(htmlTag, attribute, xPath, eve
 		    var newVal = (toXml) ? toXml(html[attribute]) : html[attribute];
 		    if (xml.textContent != newVal) {
 			xml.textContent = newVal;
+			xml.removeAttribute("xsi:nil");
 			self.fireXmlEvent(xml);
 		    }
 		});

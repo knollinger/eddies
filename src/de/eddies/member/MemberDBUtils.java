@@ -14,43 +14,43 @@ import de.eddies.session.PasswordUtil;
 
 public class MemberDBUtils
 {
-//    /**
-//     * @param id
-//     * @param conn
-//     * @return
-//     * @throws SQLException 
-//     */
-//    public static Member getMemberById(int id, Connection conn) throws SQLException
-//    {
-//        PreparedStatement stmt = null;
-//        ResultSet rs = null;
-//        try
-//        {
-//            Member result = null;
-//
-//            stmt = conn.prepareStatement("select * from accounts where id=?");
-//            stmt.setInt(1, id);
-//            rs = stmt.executeQuery();
-//            if (rs.next())
-//            {
-//                result = new Member();
-//                result.id = rs.getInt("id");
-//                result.zname = rs.getString("zname");
-//                result.vname = rs.getString("vname");
-//                result.phone = rs.getString("phone");
-//                result.mobile = rs.getString("mobile");
-//                result.email = rs.getString("email");
-//                result.sex = ESex.valueOf(rs.getString("sex"));
-//            }
-//            return result;
-//        }
-//        finally
-//        {
-//            DBUtils.closeQuitly(rs);
-//            DBUtils.closeQuitly(stmt);
-//        }
-//    }
-//
+    //    /**
+    //     * @param id
+    //     * @param conn
+    //     * @return
+    //     * @throws SQLException 
+    //     */
+    //    public static Member getMemberById(int id, Connection conn) throws SQLException
+    //    {
+    //        PreparedStatement stmt = null;
+    //        ResultSet rs = null;
+    //        try
+    //        {
+    //            Member result = null;
+    //
+    //            stmt = conn.prepareStatement("select * from accounts where id=?");
+    //            stmt.setInt(1, id);
+    //            rs = stmt.executeQuery();
+    //            if (rs.next())
+    //            {
+    //                result = new Member();
+    //                result.id = rs.getInt("id");
+    //                result.zname = rs.getString("zname");
+    //                result.vname = rs.getString("vname");
+    //                result.phone = rs.getString("phone");
+    //                result.mobile = rs.getString("mobile");
+    //                result.email = rs.getString("email");
+    //                result.sex = ESex.valueOf(rs.getString("sex"));
+    //            }
+    //            return result;
+    //        }
+    //        finally
+    //        {
+    //            DBUtils.closeQuitly(rs);
+    //            DBUtils.closeQuitly(stmt);
+    //        }
+    //    }
+    //
     /**
      * @param conn
      * @return
@@ -64,7 +64,8 @@ public class MemberDBUtils
         {
             List<Member> result = new ArrayList<>();
 
-            stmt = conn.prepareStatement("select id, zname, vname, phone, mobile, email, sex, role from accounts order by vname, zname");
+            stmt = conn.prepareStatement(
+                "select id, zname, vname, phone, mobile, email, sex, role from accounts order by vname, zname");
             rs = stmt.executeQuery();
             while (rs.next())
             {
@@ -218,9 +219,31 @@ public class MemberDBUtils
     /**
      * @param id
      * @param conn
+     * @throws SQLException 
      */
-    private static void removeMember(int id, Connection conn)
+    private static void removeMember(int id, Connection conn) throws SQLException
     {
-        // TODO: geht erst, wenn die Purifier-Table von der CalEntryTable getrennt ist
+        PreparedStatement stmt = null;
+
+        try
+        {
+            stmt = conn.prepareStatement("delete from keeper_termine where member=?");
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+            stmt.close();
+            
+            stmt = conn.prepareStatement("delete from purifier_termine where member=?");
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+            stmt.close();
+            
+            stmt = conn.prepareStatement("delete from accounts where id=?");
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+        finally
+        {
+            DBUtils.closeQuitly(stmt);
+        }
     }
 }

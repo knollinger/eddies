@@ -9,4 +9,5 @@ de.eddies.mainview.SaveCalendarHandler
 de.eddies.member.GetAllMembersHandler
 de.eddies.member.SaveMembersModelHandler
 
-
+de.eddies.admin.GetOpeningHoursModelHandler
+de.eddies.admin.SaveOpeningHoursModelHandler

@@ -152,7 +152,6 @@ ToolTip.prototype.adjustToAnchor = function(anchor) {
 	    clazz = "popup-bottom-right";	
 	    top -= (tooltipRect.height + 5);
 	}
-//	left += anchorRect.width;
 	left -= tooltipRect.width;
 	left += 15;
     }

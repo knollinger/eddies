@@ -6,6 +6,7 @@
 var MainViewCalendar = function() {
 
     this.currentDate = new Date();
+    this.mode = MainViewCalendar.WEEKLY;
 
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/calendar.html", function() {
@@ -17,11 +18,30 @@ var MainViewCalendar = function() {
 MainViewCalendar.prototype = Object.create(WorkSpaceFrame.prototype)
 
 /**
+ * Konstanten
+ */
+MainViewCalendar.WEEKLY = 0;
+MainViewCalendar.MONTHLY = 1;
+
+/**
  * 
  */
 MainViewCalendar.prototype.getTitle = function() {
 
-    return "Eddy CrashPaddy";
+    var result = "Eddy CrashPaddy - ";
+    switch (this.mode) {
+    case MainViewCalendar.WEEKLY:
+	result += DateTimeUtils.formatDate(this.currentDate, "KW {w}-{yyyy}")
+	break;
+
+    case MainViewCalendar.MONTHLY:
+	result += DateTimeUtils.formatDate(this.currentDate, "{MM} {yyyy}")
+	break;
+
+    default:
+	break;
+    }
+    return result;
 }
 
 /**
@@ -31,20 +51,91 @@ MainViewCalendar.prototype.setupUI = function() {
 
     var self = this;
 
-    this.createToolButton("gui/images/go-back.svg", "Eine Woche zurück", function() {
-	self.currentDate.setDate(self.currentDate.getDate() - 7);
-	self.update();
+    var self = this;
+    this.actionGoBack = this.createToolButton("gui/images/go-back.svg", "Zurück", function() {
+	if (self.mode == MainViewCalendar.WEEKLY) {
+	    self.oneWeekBack();
+	} else {
+	    self.oneMonthBack();
+	}
     });
-    
-    this.createToolButton("gui/images/calendar-today.svg", "Gehe zu heute", function() {
+
+    this.actionGoFore = this.createToolButton("gui/images/go-fore.svg", "Vorwärts", function() {
+	if (self.mode == MainViewCalendar.WEEKLY) {
+	    self.oneWeekFore();
+	} else {
+	    self.oneMonthFore();
+	}
+
+    });
+
+    this.actionGoToday = this.createToolButton("gui/images/calendar-today.svg", "Heute", function() {
 	self.currentDate = new Date();
 	self.update();
+
     });
-    
-    this.createToolButton("gui/images/go-fore.svg", "Eine Woche vor", function() {
-	self.currentDate.setDate(self.currentDate.getDate() + 7);
+
+    this.actionViewMonth = this.createToolButton("gui/images/view-calendar-month.svg", "Monats-Übersicht", function() {
+	self.mode = MainViewCalendar.MONTHLY;
+	self.actionViewMonth.hide();
+	self.actionViewWeek.show();
 	self.update();
     });
+
+    this.actionViewWeek = this.createToolButton("gui/images/view-calendar-week.svg", "Wochen-Übersicht", function() {
+	self.mode = MainViewCalendar.WEEKLY;
+	self.actionViewMonth.show();
+	self.actionViewWeek.hide();
+	self.update();
+    });
+    this.actionViewWeek.hide();
+
+    if (SessionManager.hasSession()) {
+	this.actionPrint = this.createToolButton("gui/images/print.svg", "Plan drucken", function() {
+
+	    var from = self.findStartDate();
+	    var until = self.findLastDate();
+	    var url = "getDocument/planning.pdf?from=" + from.getTime() + "&until=" + until.getTime();
+	    window.open(url);
+
+	});
+    }
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.oneWeekBack = function() {
+    this.currentDate.setDate(this.currentDate.getDate() - 7);
+    this.update();
+
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.oneWeekFore = function() {
+    this.currentDate.setDate(this.currentDate.getDate() + 7);
+    this.update();
+
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.oneMonthBack = function() {
+    this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+    this.update();
+
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.oneMonthFore = function() {
+    this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+    this.update();
+
 }
 
 /**
@@ -53,30 +144,39 @@ MainViewCalendar.prototype.setupUI = function() {
 MainViewCalendar.prototype.update = function() {
 
     // update title
-    var weekOfYear = DateTimeUtils.formatDate(this.currentDate, "Kalenderwoche {w}-{yyyy}");
+    WorkSpace.setTitle(this.getTitle());
 
-    var self = this;
+    // startDate/endDate finden
     var startDate = this.findStartDate();
     var endDate = this.findLastDate();
+
+    var self = this;
     this.loadModel(startDate, endDate, function() {
 
 	self.model.addChangeListener("//calendar-model", function() {
-	    self.fillWeek(startDate, endDate);
+	    self.fill(startDate, endDate);
 	});
-	self.fillWeek(startDate, endDate);
+	self.fill(startDate, endDate);
     });
+
 }
 
 /**
  * 
  */
-MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
+MainViewCalendar.prototype.fill = function(startDate, endDate) {
 
     UIUtils.clearChilds("workspace-frame-calendar-body");
-    var currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-	this.makeDay(new Date(currentDate));
-	currentDate.setDate(currentDate.getDate() + 1);
+    switch (this.mode) {
+    case MainViewCalendar.WEEKLY:
+	this.fillWeek(startDate, endDate);
+	break;
+
+    case MainViewCalendar.MONTHLY:
+	this.fillMonth(startDate, endDate);
+
+    default:
+	break;
     }
 }
 
@@ -86,7 +186,14 @@ MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
 MainViewCalendar.prototype.findStartDate = function() {
 
     var result = new Date(this.currentDate);
+    if (this.mode == MainViewCalendar.MONTHLY) {
+	result.setDate(1);
+    }
+
     result.setDate(result.getDate() - DateTimeUtils.normalizeDayOfWeek(result));
+    result.setHours(0);
+    result.setMinutes(0);
+    result.setSeconds(0);
     return result;
 }
 
@@ -95,8 +202,20 @@ MainViewCalendar.prototype.findStartDate = function() {
  */
 MainViewCalendar.prototype.findLastDate = function() {
 
-    var result = new Date(this.findStartDate());
-    result.setDate(result.getDate() + 6);
+    var result = null
+    switch (this.mode) {
+    case MainViewCalendar.WEEKLY:
+	result = new Date(this.findStartDate());
+	result.setDate(result.getDate() + 6);
+	break;
+
+    case MainViewCalendar.MONTHLY:
+	result = new Date(this.currentDate);
+	result.setDate(1);
+	result.setMonth(result.getMonth() + 1);
+	result.setDate(result.getDate() - 1);
+	break;
+    }
     return result;
 }
 
@@ -136,26 +255,38 @@ MainViewCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
 /**
  * 
  */
-MainViewCalendar.prototype.makeDay = function(date) {
+MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
+
+    var currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+	this.makeWeekDay(new Date(currentDate));
+	currentDate.setDate(currentDate.getDate() + 1);
+    }
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.makeWeekDay = function(date) {
 
     var day = document.createElement("div");
-    day.className = "calendar-day";
+    day.className = "calendar-weekday";
 
     var content = document.createElement("div");
-    content.className = "calendar-day-content";
+    content.className = "calendar-weekday-content";
     day.appendChild(content);
 
     var title = document.createElement("div");
-    title.className = "calendar-day-title";
+    title.className = "calendar-weekday-title";
     title.textContent = DateTimeUtils.formatDate(date, "{D} - {dd}.{mm}.{yyyy}");
     content.appendChild(title);
 
     var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
     var entries = this.model.evaluateXPath(baseXPath);
     if (entries.length == 0) {
-	content.className += " calendar-day-closed";
+	content.className += " calendar-weekday-closed";
     } else {
-	content.className += " calendar-day-open";
+	content.className += " calendar-weekday-open";
 	content.appendChild(this.makeOpeningTimeIndicator(baseXPath));
     }
     UIUtils.getElement("workspace-frame-calendar-body").appendChild(day);
@@ -167,7 +298,88 @@ MainViewCalendar.prototype.makeDay = function(date) {
 	content.addEventListener("click", function() {
 	    new MainViewDetails(self.model, date);
 	});
+	
+	if(self.hasPurifier(date)) {
+	    content.className += " calendar-has-purifier"
+	}
     }
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.fillMonth = function(startDate, endDate) {
+
+    var currentDate = new Date(startDate);
+    var row = null;
+    while (currentDate <= endDate) {
+
+	if (currentDate.getDay() == 1 || row == null) {
+	    row = document.createElement("div");
+	    row.className = "calendar-monthly-row";
+	    UIUtils.getElement("workspace-frame-calendar-body").appendChild(row);
+	}
+
+	for (var i = 0; i < 7; i++) {
+
+	    row.appendChild(this.makeMonthDay(new Date(currentDate)));
+	    currentDate.setDate(currentDate.getDate() + 1);
+	}
+    }
+
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.makeMonthDay = function(date) {
+
+    var cell = document.createElement("div");
+    cell.className = "calendar-monthly-day";
+
+    var span = document.createElement("div");
+    span.className = "calenday-monthly-day-header";
+    span.textContent = DateTimeUtils.formatDate(date, "{dd}");
+    cell.appendChild(span);
+
+    var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
+    var entries = this.model.evaluateXPath(baseXPath);
+    if (entries.length == 0) {
+	span.className += " calendar-monthly-day-closed";
+    } else {
+	span.className += " calendar-monthly-day-open";
+	var begin = DateTimeUtils.formatTime(this.findFrom(baseXPath), "{hh}:{mm}");
+	var end = DateTimeUtils.formatTime(this.findUntil(baseXPath), "{hh}:{mm}");
+	span = document.createElement("div");
+	span.className = "calendar-monthly-day-time";
+	span.textContent = begin + " " + end;
+	cell.appendChild(span);
+    }
+
+    var self = this;
+    if (SessionManager.hasSession()) {
+
+	UIUtils.addClass(cell, "clickable");
+	cell.addEventListener("click", function() {
+	    new MainViewDetails(self.model, date);
+	});
+	
+	if(self.hasPurifier(date)) {
+	    cell.className += " calendar-has-purifier";
+	}
+
+    }
+    return cell;
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.hasPurifier = function(date) {
+
+    var strDate = DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}");
+    var xpath = "//calendar-model/purifier-entries/purifier-entry[date='" + strDate + "']";
+    return this.model.evaluateXPath(xpath).length;
 }
 
 /**
@@ -178,7 +390,7 @@ MainViewCalendar.prototype.makeOpeningTimeIndicator = function(xpath) {
     var begin = DateTimeUtils.formatTime(this.findFrom(xpath), "{hh}:{mm}");
     var end = DateTimeUtils.formatTime(this.findUntil(xpath), "{hh}:{mm}");
     var time = document.createElement("div");
-    time.className = "calendar-day-time";
+    time.className = "calendar-weekday-time";
     time.textContent = begin + " - " + end;
 
     return time;
@@ -249,7 +461,7 @@ MainViewDetails.prototype = Object.create(WorkSpaceFrame.prototype);
  * 
  */
 MainViewDetails.prototype.loadMemberModel = function(onsuccess) {
-    
+
     var self = this;
     var caller = new ServiceCaller();
     caller.onSuccess = function(rsp) {
@@ -580,7 +792,7 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
 
     // zeiten
     var from = document.createElement("input");
-    from.className = "details-content-time mandatory";
+    from.className = "mandatory";
     from.type = "time";
     from.title = from.placeholder = "von";
     this.model.createValueBinding(from, this.entryXPath + "/begin");
@@ -591,7 +803,7 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
     result.appendChild(fill);
 
     var end = document.createElement("input");
-    end.className = "details-content-time mandatory";
+    end.className = "mandatory";
     end.type = "time";
     end.title = end.placeholder = "bis";
     this.model.createValueBinding(end, this.entryXPath + "/end");

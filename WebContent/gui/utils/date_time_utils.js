@@ -1,6 +1,7 @@
 var DateTimeUtils = (function() {
 
     var monthAsShortString = [ "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez" ];
+    var monthAsLongString = [ "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember" ];
     var daysAsShortString = [ "So", "Mo", "Di", "Mi", "Do", "Fr", "Sa" ];
     var daysAsLongString = [ "Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag" ];
 
@@ -20,6 +21,7 @@ var DateTimeUtils = (function() {
 	    result = result.replace("{dd}", DateTimeUtils.formatNumber(2, date.getDate()));
 	    result = result.replace("{d}", date.getDate());
 	    result = result.replace("{M}", monthAsShortString[date.getMonth()]);
+	    result = result.replace("{MM}", monthAsLongString[date.getMonth()]);
 	    result = result.replace("{mm}", DateTimeUtils.formatNumber(2, date.getMonth() + 1));
 	    result = result.replace("{m}", date.getMonth() + 1);
 	    result = result.replace("{yyyy}", date.getFullYear());

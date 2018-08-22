@@ -310,8 +310,8 @@ MemberEditorEntry.prototype.createNameRow = function() {
     var row = document.createElement("div");
     row.className = "grid-row-0";
 
-    row.appendChild(this.makeField(this.memberXPath + "/zname", "grid-col-1", "mandatory", "Name"));
-    row.appendChild(this.makeField(this.memberXPath + "/vname", "grid-col-1", "mandatory", "Vorname"));
+    row.appendChild(this.makeField(this.memberXPath + "/zname", "grid-col-2", "mandatory", "Name"));
+    row.appendChild(this.makeField(this.memberXPath + "/vname", "grid-col-2", "mandatory", "Vorname"));
 
     return row;
 }
@@ -323,7 +323,7 @@ MemberEditorEntry.prototype.createNameRow = function() {
 MemberEditorEntry.prototype.createSexSelector = function() {
 
     var select = document.createElement("select");
-    select.className = "grid-col-1";
+    select.className = "grid-col-2";
 
     var opt = document.createElement("option");
     opt.disabled = opt.selected = true;
@@ -358,7 +358,7 @@ MemberEditorEntry.prototype.createSexSelector = function() {
 MemberEditorEntry.prototype.createRoleSelector = function() {
 
     var select = document.createElement("select");
-    select.className = "grid-col-1 mandatory";
+    select.className = "grid-col-2 mandatory";
 
     var opt = document.createElement("option");
     opt.disabled = opt.selected = true;
@@ -390,8 +390,8 @@ MemberEditorEntry.prototype.createPhoneRow = function() {
     var row = document.createElement("div");
     row.className = "grid-row-0";
 
-    row.appendChild(this.makeField(this.memberXPath + "/mobile", "grid-col-1", "mandatory", "Mobile-Nummer"));
-    row.appendChild(this.makeField(this.memberXPath + "/phone", "grid-col-1", null, "Festnetz"));
+    row.appendChild(this.makeField(this.memberXPath + "/mobile", "grid-col-2", "mandatory", "Mobile-Nummer"));
+    row.appendChild(this.makeField(this.memberXPath + "/phone", "grid-col-2", null, "Festnetz"));
 
     return row;
 }
@@ -405,7 +405,7 @@ MemberEditorEntry.prototype.createMailRow = function() {
     var row = document.createElement("div");
     row.className = "grid-row-0";
 
-    row.appendChild(this.makeField(this.memberXPath + "/email", "grid-col-2", "mandatory", "Email"));
+    row.appendChild(this.makeField(this.memberXPath + "/email", "grid-col-4", "mandatory", "Email"));
 
     return row;
 }
@@ -541,7 +541,7 @@ MemberSelector.prototype.createOneEntry = function(xpath) {
 MemberSelector.prototype.createImage = function(xpath) {
 
     var img = document.createElement("img");
-    img.className = "avatar";
+    img.className = "avatar clickable";
     img.src = "getDocument/memberImage?id=" + this.model.getValue(xpath + "/id");
     return img;
 }

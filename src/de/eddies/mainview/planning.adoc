@@ -1,0 +1,11 @@
+{HEADER}
+= Schichtplanung Eddie Crashpaddy $FROM$ - $UNTIL$
+{/HEADER}
+
+[width="100%", cols="2,6,4", options="header"]
+|===========================
+| Datum | Theki | Heinzelmännchen
+{ROW}
+| $DATE$ | $KEEPER$ | $PURIFIER$
+{/ROW}
+|===========================

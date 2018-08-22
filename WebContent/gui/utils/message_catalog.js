@@ -19,7 +19,7 @@ var MessageCatalog = (function() {
 	SAVE_MEMBEROVERVIEW_TECH_ERROR : "Beim speichern der Team-Übersicht ist ein technischer Fehler aufgetreten. Der Server antwortete mit dem Status-Code {1}",
 
 	REMOVE_MEMBER_TITLE : "Bist Du sicher?",
-	REMOVE_MEMBER_QUERY : "M&ouml;chtest Du dieses Team-Mitglied wirklich l&ouml;schen?<br><br>Dieser Vorgang kann nicht r&uuml;ckg&auml;ngig gemacht werden!",
+	REMOVE_MEMBER_QUERY : "M&ouml;chtest Du dieses Team-Mitglied <b>und alle seine Termine</b> wirklich l&ouml;schen?<br><br>Dieser Vorgang kann nicht r&uuml;ckg&auml;ngig gemacht werden!",
 	
 	GET_CALENDER_ERROR_TITLE : "Fehler beim laden des Kalenders",
 	GET_CALENDER_ERROR : "Beim laden des Kalenders ist ein Fehler aufgetreten. Der Server antwortete mit:<br>{1}",
@@ -28,6 +28,14 @@ var MessageCatalog = (function() {
 	REMOVE_KEEPER_TITLE : "Bist Du sicher?",
 	REMOVE_KEEPER_QUERY : "M&ouml;chtest Du den Theki wirklich aus diesem Termin entfernen ?",
 	
+	LOAD_OPENING_HOURS_MODEL_ERROR_TITLE : "Fehler beim laden der Standart-&Ouml;ffnungszeiten",
+	LOAD_OPENING_HOURS_MODEL_ERROR : "Beim laden der &Ouml;ffnungszeiten ist ein Fehler aufgetreten. Der Server antwortete mit:<br>{1}",
+	LOAD_OPENING_HOURS_MODEL_TECH_ERROR : "Beim laden der &Ouml;ffnungszeiten ist ein technischer Fehler aufgetreten. Der Server antwortete mit dem Status-Code {1}",
+
+	SAVE_OPENING_HOURS_MODEL_ERROR_TITLE : "Fehler beim speichern der Standart-&Ouml;ffnungszeiten",
+	SAVE_OPENING_HOURS_MODEL_ERROR : "Beim speichern der &Ouml;ffnungszeiten ist ein Fehler aufgetreten. Der Server antwortete mit:<br>{1}",
+	SAVE_OPENING_HOURS_MODEL_TECH_ERROR : "Beim speichern der &Ouml;ffnungszeiten ist ein technischer Fehler aufgetreten. Der Server antwortete mit dem Status-Code {1}",
+
 
     }
 

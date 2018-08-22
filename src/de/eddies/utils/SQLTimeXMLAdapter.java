@@ -10,7 +10,7 @@ public class SQLTimeXMLAdapter extends XmlAdapter<String, Time>
     @Override
     public String marshal(Time v) throws Exception
     {
-        String result = null;
+        String result = "";
         if (v != null)
         {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
