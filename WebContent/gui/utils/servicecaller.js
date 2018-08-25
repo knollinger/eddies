@@ -46,7 +46,7 @@ function ServiceCaller() {
                         var title = MessageCatalog.getMessage("SVCCALLER_TITLE_ERROR");
                         var msg = MessageCatalog.getMessage("SVCCALLER_MSG_SESSION_LOST");
                         new MessageBox(MessageBox.INFO, title, msg, function() {
-                            new LogonDialog();
+                            new LoginView();
                         });
                     }
                     else {

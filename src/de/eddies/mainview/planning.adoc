@@ -1,5 +1,6 @@
 {HEADER}
 = Schichtplanung Eddie Crashpaddy $FROM$ - $UNTIL$
+Stand vom: $TODAY$
 {/HEADER}
 
 [width="100%", cols="2,6,4", options="header"]

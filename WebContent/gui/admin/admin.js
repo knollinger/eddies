@@ -13,14 +13,17 @@ AdminView.prototype = Object.create(WorkSpaceFrame.prototype);
  */
 AdminView.prototype.setupUI = function() {
 
-    UIUtils.getElement("admin-members-btn").addEventListener("click", function() {
+    var btnBox = this.body.querySelector(".navigation-button-box");
+    btnBox.appendChild(new NavigationButton("Crew verwalten", "gui/images/person.svg", function() {
 	new MemberEditor();
-    });
-    UIUtils.getElement("admin-members-btn").focus();
+    }));
 
-    UIUtils.getElement("admin-opening-hours-btn").addEventListener("click", function() {
-	new OpeningHoursEditor();
-    });
+    if (SessionManager.isAdmin()) {
+
+	btnBox.appendChild(new NavigationButton("Öffnungs-Zeiten verwalten", "gui/images/calendar.svg", function() {
+	    new OpeningHoursEditor();
+	}));
+    }
 }
 
 /**
@@ -113,9 +116,9 @@ OpeningHoursEditor.prototype.bindOneDay = function(dayOfWeek) {
 
     var self = this;
     this.model.addChangeListener(xpath, function() {
-	
+
 	var action = self.model.getValue(xpath + "/action");
-	if(action == "NONE") {
+	if (action == "NONE") {
 	    self.model.setValue(xpath + "/action", "MODIFY");
 	}
     });

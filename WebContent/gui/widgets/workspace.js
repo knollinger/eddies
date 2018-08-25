@@ -3,9 +3,21 @@
  */
 var WorkSpace = (function() {
 
-    wsBody = document.getElementById("workspace-body");
-    menuIcon = document.getElementById("main-view-menu-icon");
+    // Keine ContextMenus!
+//     document.body.addEventListener("contextmenu", function(evt) {
+//	evt.preventDefault();
+//	evt.stopPropagation();
+//    }, false);
 
+    // prevent touchmove!
+    document.body.addEventListener("touchmove", function(evt) {
+
+	evt.preventDefault();
+	evt.stopPropagation();
+    }, false);
+
+    
+    menuIcon = document.getElementById("main-view-menu-icon");
     menuIcon.addEventListener("click", function() {
 	MainMenu.show();
     });
@@ -27,6 +39,7 @@ var WorkSpace = (function() {
 	addFrame : function(frame) {
 
 	    frames.push(frame);
+	    var wsBody = document.getElementById("workspace-body");
 	    wsBody.appendChild(frame.frame);
 	    frame.activate();
 	},
@@ -217,6 +230,11 @@ WorkSpaceFrame.prototype.activate = function() {
 
     var title = (this.getTitle) ? this.getTitle() : "getTitle nicht implementiert!";
     WorkSpace.setTitle(title);
+
+    var annotations = this.getAnnotations();
+    MainMenu.enableLogin(annotations.disableLogin != "yes");
+    MainMenu.enablePwdChange(annotations.disablePwdChange != "yes");
+    MainMenu.enableAdmin(annotations.disableAdmin != "yes");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -250,55 +268,89 @@ WorkSpaceActionButton.prototype.hide = function(val) {
 }
 
 /**
+ * 
+ */
+WorkSpaceActionButton.prototype.click = function(val) {
+
+    this.ui.click();
+}
+
+/**
+ * 
+ */
+var NavigationButton = function(text, iconURL, onclick) {
+
+    var img = document.createElement("img");
+    img.src = iconURL;
+    
+    var label = document.createElement("div");
+    label.textContent = text;
+    
+    var btn = document.createElement("div");
+    btn.className = "navigation-button";
+    btn.appendChild(img);
+    btn.appendChild(label);
+    
+    btn.addEventListener("click", function() {
+	onclick();
+    });
+    return btn;
+}
+
+/**
  * Das MainMenu
  */
 var MainMenu = (function() {
 
-    var content = document.getElementById("main-menu-content");
-    var login = document.getElementById("main-menu-login");
-    var logout = document.getElementById("main-menu-logout");
-    var changePwd = document.getElementById("main-menu-change-pwd");
-    var goAdmin = document.getElementById("main-menu-usermgmt");
-
-    content.addEventListener("blur", function() {
-	MainMenu.hide();
+    UIUtils.getElement("main-menu-content").addEventListener("blur", function() {
+	UIUtils.addClass("main-menu-content", "hidden");
     });
 
-    content.addEventListener("keydown", function(evt) {
-	if (evt.keyCode == 27) {
+    var loginEnabled = false;
+    var chgPwdEnabled = false;
+    var adminEnabled = false;
+
+    /**
+     * 
+     */
+    var createMenuEntry = function(text, onclick) {
+
+	var entry = document.createElement("div");
+	entry.className = "main-menu-item";
+	entry.textContent = text;
+	entry.addEventListener("click", function() {
 	    MainMenu.hide();
-	}
-    });
-
-    login.addEventListener("click", function() {
-	MainMenu.hide();
-	new LoginView();
-    });
-
-    logout.addEventListener("click", function() {
-	MainMenu.hide();
-	SessionManager.logout();
-    });
-
-    changePwd.addEventListener("click", function() {
-	MainMenu.hide();
-	new ChangePasswordView();
-    });
-
-    goAdmin.addEventListener("click", function() {
-	MainMenu.hide();
-	new AdminView();
-    });
+	    onclick();
+	});
+	return entry;
+    }
 
     /**
      * 
      */
     var showLoggedIn = function() {
-	UIUtils.addClass(login, "hidden");
-	UIUtils.removeClass(logout, "hidden");
-	UIUtils.removeClass(changePwd, "hidden");
-	UIUtils.removeClass("main-menu-separator", "hidden");
-	UIUtils.removeClass(goAdmin, "hidden");
+
+	var content = UIUtils.getElement("main-menu-content");
+
+	if (loginEnabled) {
+	    content.appendChild(createMenuEntry("Abmelden", function() {
+		SessionManager.logout();
+	    }));
+	}
+
+	if (chgPwdEnabled) {
+	    content.appendChild(createMenuEntry("Kennwort ändern", function() {
+		new ChangePasswordView();
+	    }));
+	}
+
+	if (adminEnabled) {
+	    content.appendChild(document.createElement("hr"));
+	    content.appendChild(createMenuEntry("Administration", function() {
+		new AdminView();
+	    }));
+	}
+
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
     }
@@ -307,22 +359,55 @@ var MainMenu = (function() {
      * 
      */
     var showLoggedOut = function() {
-	UIUtils.removeClass(login, "hidden");
-	UIUtils.addClass(logout, "hidden");
-	UIUtils.addClass(changePwd, "hidden");
-	UIUtils.addClass("main-menu-separator", "hidden");
-	UIUtils.addClass(goAdmin, "hidden");
-	UIUtils.removeClass(content, "hidden");
-	content.focus();
+
+	var content = UIUtils.getElement("main-menu-content");
+	if (loginEnabled) {
+
+	    content.appendChild(createMenuEntry("Anmelden", function() {
+		new LoginView();
+	    }));
+
+	    UIUtils.removeClass(content, "hidden");
+	    content.focus();
+	}
     }
 
     return {
 
+	/**
+	 * 
+	 */
+	enableLogin : function(val) {
+	    loginEnabled = val;
+	},
+
+	/**
+	 * 
+	 */
+	enablePwdChange : function(val) {
+	    chgPwdEnabled = val;
+	},
+
+	/**
+	 * 
+	 */
+	enableAdmin : function(val) {
+	    adminEnabled = val;
+	},
+
+	/**
+	 * 
+	 */
 	show : function() {
+	    UIUtils.clearChilds("main-menu-content");
 	    SessionManager.checkSessionState(showLoggedIn, showLoggedOut);
 	},
 
+	/**
+	 * 
+	 */
 	hide : function() {
+	    var content = UIUtils.getElement("main-menu-content");
 	    UIUtils.addClass(content, "hidden");
 	}
     }

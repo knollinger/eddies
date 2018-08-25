@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Setup
 {
     private DbSetup dbSetup;
+    private EmailSetup emailSetup;
 
     /**
      * 
@@ -30,5 +31,24 @@ public class Setup
     public void setDbSetup(DbSetup dbSetup)
     {
         this.dbSetup = dbSetup;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    @XmlElement(name="email")
+    public EmailSetup getEmailSetup()
+    {
+        return this.emailSetup;
+    }
+
+    /**
+     * 
+     * @param emailSetup
+     */
+    public void setEmailSetup(EmailSetup emailSetup)
+    {
+        this.emailSetup = emailSetup;
     }
 }

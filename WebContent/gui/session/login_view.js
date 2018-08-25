@@ -123,6 +123,14 @@ ChangePasswordView.prototype = Object.create(WorkSpaceFrame.prototype);
 /**
  * 
  */
+ChangePasswordView.prototype.getTitle = function() {
+    
+    return "Kennwort ändern";
+}
+
+/**
+ * 
+ */
 ChangePasswordView.prototype.adjustSubmitBtn = function() {
 
     this.submitBtn.disabled = this.oldPwdEntry.value == "" || this.newPwdEntry.value == "" || this.newPwd1Entry.value == "";

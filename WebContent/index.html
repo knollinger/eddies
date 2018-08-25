@@ -29,19 +29,13 @@
 				<img id="main-view-menu-icon" class="main-menu-icon"
 					src="gui/images/navigation-menu.svg">
 				<div id="main-menu-content" class="main-menu-content hidden"
-					tabIndex="0">
-					<div id="main-menu-login" class="main-menu-item">Anmelden</div>
-					<div id="main-menu-logout" class="main-menu-item">Abmelden</div>
-					<div id="main-menu-change-pwd" class="main-menu-item">Kennwort
-						ändern</div>
-					<hr id="main-menu-separator">
-					<div id="main-menu-usermgmt" class="main-menu-item">Administration</div>
-
-				</div>
+					tabIndex="0"></div>
 			</div>
-			<span id="workspace-title-text">Eddie Crashpaddy</span>
+			<span id="workspace-title-text"></span>
 		</div>
-		<div class="workspace-header"></div>
+		<div class="workspace-header">
+			<span>Eddie Crashpaddy</span>
+		</div>
 		<div id="workspace-body"></div>
 		<div id="busy-indicator" class="busy-indicator">
 			<img src="gui//images/spin.gif" />
@@ -58,6 +52,7 @@
 <script type="text/javascript" src="gui/utils/servicecaller.js"></script>
 <script type="text/javascript" src="gui/utils/xmlutils.js"></script>
 <script type="text/javascript" src="gui/utils/validator.js"></script>
+<script type="text/javascript" src="gui/utils/touchgestures_observer.js"></script>
 
 <script type="text/javascript" src="gui/session/session_manager.js"></script>
 <script type="text/javascript" src="gui/widgets/busy_indicator.js"></script>

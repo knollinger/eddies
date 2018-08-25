@@ -13,6 +13,7 @@ var MainViewCalendar = function() {
 
 	self.setupUI();
 	self.update();
+	new TouchGesturesObserver("workspace-frame-calendar-body", self);
     });
 }
 MainViewCalendar.prototype = Object.create(WorkSpaceFrame.prototype)
@@ -91,13 +92,13 @@ MainViewCalendar.prototype.setupUI = function() {
     this.actionViewWeek.hide();
 
     if (SessionManager.hasSession()) {
+
 	this.actionPrint = this.createToolButton("gui/images/print.svg", "Plan drucken", function() {
 
 	    var from = self.findStartDate();
 	    var until = self.findLastDate();
 	    var url = "getDocument/planning.pdf?from=" + from.getTime() + "&until=" + until.getTime();
 	    window.open(url);
-
 	});
     }
 }
@@ -136,6 +137,36 @@ MainViewCalendar.prototype.oneMonthFore = function() {
     this.currentDate.setMonth(this.currentDate.getMonth() + 1);
     this.update();
 
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.swipeToLeft = function() {
+
+    this.actionGoFore.click();
+}
+/**
+ * 
+ */
+MainViewCalendar.prototype.swipeUp = function() {
+
+    this.actionGoFore.click();
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.swipeToRight = function() {
+
+    this.actionGoBack.click();
+}
+/**
+ * 
+ */
+MainViewCalendar.prototype.swipeDown = function() {
+
+    this.actionGoBack.click();
 }
 
 /**
@@ -214,6 +245,10 @@ MainViewCalendar.prototype.findLastDate = function() {
 	result.setDate(1);
 	result.setMonth(result.getMonth() + 1);
 	result.setDate(result.getDate() - 1);
+	// auf den nächsten Samstag hoch rechnen
+	while (result.getDay() != 0) {
+	    result.setDate(result.getDate() + 1);
+	}
 	break;
     }
     return result;
@@ -278,6 +313,9 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
 
     var title = document.createElement("div");
     title.className = "calendar-weekday-title";
+    if (DateTimeUtils.isToday(date)) {
+	title.className += " calendar-today";
+    }
     title.textContent = DateTimeUtils.formatDate(date, "{D} - {dd}.{mm}.{yyyy}");
     content.appendChild(title);
 
@@ -298,8 +336,8 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
 	content.addEventListener("click", function() {
 	    new MainViewDetails(self.model, date);
 	});
-	
-	if(self.hasPurifier(date)) {
+
+	if (self.hasPurifier(date)) {
 	    content.className += " calendar-has-purifier"
 	}
     }
@@ -339,6 +377,10 @@ MainViewCalendar.prototype.makeMonthDay = function(date) {
 
     var span = document.createElement("div");
     span.className = "calenday-monthly-day-header";
+    if (DateTimeUtils.isToday(date)) {
+	span.className += " calendar-today";
+    }
+
     span.textContent = DateTimeUtils.formatDate(date, "{dd}");
     cell.appendChild(span);
 
@@ -363,8 +405,8 @@ MainViewCalendar.prototype.makeMonthDay = function(date) {
 	cell.addEventListener("click", function() {
 	    new MainViewDetails(self.model, date);
 	});
-	
-	if(self.hasPurifier(date)) {
+
+	if (self.hasPurifier(date)) {
 	    cell.className += " calendar-has-purifier";
 	}
 
@@ -794,7 +836,7 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
     var from = document.createElement("input");
     from.className = "mandatory";
     from.setAttribute("type", "time");
-//    from.type = "time";
+    from.dataset.type = "time";
     from.title = from.placeholder = "von";
     this.model.createValueBinding(from, this.entryXPath + "/begin");
     result.appendChild(from);
@@ -806,7 +848,7 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
     var end = document.createElement("input");
     end.className = "mandatory";
     end.setAttribute("type", "time");
-//    end.type = "time";
+    end.dataset.type = "time";
     end.title = end.placeholder = "bis";
     this.model.createValueBinding(end, this.entryXPath + "/end");
     result.appendChild(end);

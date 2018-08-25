@@ -7,4 +7,25 @@
 		<user>root</user>
 		<pwd>Sun12shine</pwd>
 	</database>
+	
+	<email>
+		<send>
+			<host>smtp.gmail.com</host>
+			<port>587</port>
+			<use-start-tls>true</use-start-tls>
+			<user>bbgs.verwaltung</user>
+			<pwd>Sun12shine</pwd>
+			<from>info@bayerns-beste-gipfelstuermer-verwaltung.de</from>
+		</send>
+		<receive>
+			<host>imap.gmail.com</host>
+			<port>993</port>
+			<use-start-tls>true</use-start-tls>
+			<user>bbgs.verwaltung</user>
+			<pwd>Sun12shine</pwd>
+			<protocol>imaps</protocol>
+		</receive>
+	</email>
+
+	
 </setup>

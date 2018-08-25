@@ -145,8 +145,8 @@ var DateTimeUtils = (function() {
 
 	isTime : function(time) {
 
-	    var dateReg = /^0[0-9]|1[0-9]|2[0.3]:[0-5][0-9]/;
-	    return time.match(dateReg);
+	    var dateReg = /^0[0-9]|1[0-9]|2[0-3]|[0-5][0-9]/g;
+	    return time.match(dateReg).length == 2;
 
 	},
 
