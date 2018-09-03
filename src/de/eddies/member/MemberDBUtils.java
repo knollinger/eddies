@@ -14,43 +14,8 @@ import de.eddies.session.PasswordUtil;
 
 public class MemberDBUtils
 {
-    //    /**
-    //     * @param id
-    //     * @param conn
-    //     * @return
-    //     * @throws SQLException 
-    //     */
-    //    public static Member getMemberById(int id, Connection conn) throws SQLException
-    //    {
-    //        PreparedStatement stmt = null;
-    //        ResultSet rs = null;
-    //        try
-    //        {
-    //            Member result = null;
-    //
-    //            stmt = conn.prepareStatement("select * from accounts where id=?");
-    //            stmt.setInt(1, id);
-    //            rs = stmt.executeQuery();
-    //            if (rs.next())
-    //            {
-    //                result = new Member();
-    //                result.id = rs.getInt("id");
-    //                result.zname = rs.getString("zname");
-    //                result.vname = rs.getString("vname");
-    //                result.phone = rs.getString("phone");
-    //                result.mobile = rs.getString("mobile");
-    //                result.email = rs.getString("email");
-    //                result.sex = ESex.valueOf(rs.getString("sex"));
-    //            }
-    //            return result;
-    //        }
-    //        finally
-    //        {
-    //            DBUtils.closeQuitly(rs);
-    //            DBUtils.closeQuitly(stmt);
-    //        }
-    //    }
-    //
+    private static final String INITIAL_PASSWORD = "Start123";
+
     /**
      * @param conn
      * @return
@@ -142,7 +107,7 @@ public class MemberDBUtils
             stmt.setString(5, m.email.trim());
             stmt.setString(6, m.sex.name());
             stmt.setString(7, m.role.name());
-            stmt.setString(8, PasswordUtil.hashPassword(m.email));
+            stmt.setString(8, PasswordUtil.hashPassword(INITIAL_PASSWORD));
             stmt.executeUpdate();
             rs = stmt.getGeneratedKeys();
             rs.next();

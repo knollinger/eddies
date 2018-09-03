@@ -63,10 +63,20 @@ FilePicker.prototype.handleSelection = function(picker) {
 
 	    BusyIndicator.hide();
 	    if (self.onSelect) {
-		var data = btoa(evt.target.result);
+		// var data = btoa(evt.target.result);
+		// self.onSelect(name, type, data);
+
+		var binary = "";
+		var bytes = new Uint8Array(reader.result);
+		var length = bytes.byteLength;
+		for (var i = 0; i < length; i++) {
+		    binary += String.fromCharCode(bytes[i]);
+		}
+		var data = btoa(binary);
 		self.onSelect(name, type, data);
 	    }
 	};
-	reader.readAsBinaryString(file);
+	// reader.readAsBinaryString(file);
+	reader.readAsArrayBuffer(file);
     }
 }

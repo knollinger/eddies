@@ -18,7 +18,7 @@ var LoginView = function() {
 	    self.adjustSubmitBtn();
 	});
 
-	self.setCookie = document.getElementById("login-set-cookie");
+//	self.setCookie = document.getElementById("login-set-cookie");
 	
 	self.submitBtn = document.getElementById("login-submit");
 	self.submitBtn.addEventListener("click", function() {
@@ -82,7 +82,7 @@ LoginView.prototype.login = function() {
     var req = XmlUtils.createDocument("logon-request");
     XmlUtils.setNode(req, "email", this.emailEntry.value);
     XmlUtils.setNode(req, "password", this.passwdEntry.value);
-    XmlUtils.setNode(req, "set-cookie", this.setCookie.checked);
+//    XmlUtils.setNode(req, "set-cookie", this.setCookie.checked);
     caller.invokeService(req);
 }
 

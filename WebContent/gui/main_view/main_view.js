@@ -350,12 +350,14 @@ MainViewCalendar.prototype.fillMonth = function(startDate, endDate) {
 
     var currentDate = new Date(startDate);
     var row = null;
+    var calBody = UIUtils.getElement("workspace-frame-calendar-body");
+    calBody.appendChild(this.makeMonthHeader());
     while (currentDate <= endDate) {
 
 	if (currentDate.getDay() == 1 || row == null) {
 	    row = document.createElement("div");
 	    row.className = "calendar-monthly-row";
-	    UIUtils.getElement("workspace-frame-calendar-body").appendChild(row);
+	    calBody.appendChild(row);
 	}
 
 	for (var i = 0; i < 7; i++) {
@@ -364,7 +366,24 @@ MainViewCalendar.prototype.fillMonth = function(startDate, endDate) {
 	    currentDate.setDate(currentDate.getDate() + 1);
 	}
     }
+}
 
+/**
+ * 
+ */
+MainViewCalendar.prototype.makeMonthHeader = function() {
+
+    var row = document.createElement("div");
+    row.className = "calendar-monthly-header";
+    
+    var days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+    for(var i = 0; i < days.length; i++) {
+	var cell = document.createElement("div");
+	cell.className = "calendar-monthly-header-cell";
+	cell.textContent = days[i];
+	row.appendChild(cell);
+    }
+    return row;
 }
 
 /**

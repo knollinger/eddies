@@ -5,6 +5,7 @@
 var MemberEditor = function() {
 
     var self = this;
+    this.entries = [];
     WorkSpaceFrame.call(this, "gui/member_view/member_overview.html", function() {
 
 	self.enableSaveButton(false);
@@ -43,6 +44,7 @@ MemberEditor.prototype.createAddAction = function() {
 	var doc = XmlUtils.parse(MemberEditor.EMPTY_ENTRY);
 	self.currXPath = self.model.addElement("//members-model/members", doc.documentElement);
 	self.currEntry = new MemberEditorEntry(self.model, self.currXPath);
+	self.entries.push[self.currEntry];
 	UIUtils.getElement("member-overview-body").appendChild(self.currEntry.container);
 	self.currEntry.container.addEventListener("click", function() {
 	    self.actionRemove.show();
@@ -72,7 +74,9 @@ MemberEditor.prototype.createRemoveAction = function() {
 		self.model.setValue(self.currXPath + "/action", "REMOVE");
 	    }
 	    UIUtils.removeElement(self.currEntry.container);
+	    self.entries.remove(self.currEntry);
 	    self.currEntry = self.currXPath = null;
+	    
 	});
     });
     action.hide();
@@ -121,6 +125,7 @@ MemberEditor.prototype.fillTable = function(memberId) {
 
 	var xpath = XmlUtils.getXPathTo(allMember[i]);
 	var entry = this.createOneEntry(xpath);
+	this.entries.push(entry);
 	UIUtils.getElement("member-overview-body").appendChild(entry.container);
 
 	if (i == 0) {
@@ -154,6 +159,23 @@ MemberEditor.prototype.createOneEntry = function(xpath) {
 	});
     }
     return entry;
+}
+
+/**
+ * 
+ */
+MemberEditor.prototype.validate = function() {
+
+    var val = new Validator();
+    var result = true;
+    for(var i = 0; result && i < this.entries.length; i++) {
+	
+	var curr = this.entries[i];
+	curr.expand();
+	result = val.validate(curr.container);
+	
+    }
+    return result;
 }
 
 /**
@@ -305,6 +327,15 @@ MemberEditorEntry.prototype.createLabel = function() {
  * 
  * 
  */
+MemberEditorEntry.prototype.expand = function() {
+    
+    this.radio.click();
+}
+
+/*
+ * 
+ * 
+ */
 MemberEditorEntry.prototype.createNameRow = function() {
 
     var row = document.createElement("div");
@@ -390,7 +421,7 @@ MemberEditorEntry.prototype.createPhoneRow = function() {
     var row = document.createElement("div");
     row.className = "grid-row-0";
 
-    row.appendChild(this.makeField(this.memberXPath + "/mobile", "grid-col-2", "mandatory", "Mobile-Nummer"));
+    row.appendChild(this.makeField(this.memberXPath + "/mobile", "grid-col-2", null, "Mobile-Nummer"));
     row.appendChild(this.makeField(this.memberXPath + "/phone", "grid-col-2", null, "Festnetz"));
 
     return row;

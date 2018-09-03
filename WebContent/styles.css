@@ -636,7 +636,8 @@ td:last-child {
 }
 
 .workspace-header {
-	position: relative; height : 20%;
+	position: relative;
+	height: 20%;
 	background: url('gui/images/background.jpg');
 	background-size: cover;
 	background-position: center center;
@@ -659,7 +660,8 @@ td:last-child {
 .workspace-header>span {
 	color: white;
 	font-size: 24px;
-	position: absolute; right : 10px;
+	position: absolute;
+	right: 10px;
 	bottom: 10px;
 	right: 10px;
 }
@@ -1043,6 +1045,31 @@ td:last-child {
 }
 
 .calendar-today {
+	font-weight: 600;
+}
+
+.calendar-monthly-header {
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	-moz-flex-direction: row;
+	-ms-flex-direction: row;
+	flex-direction: row;
+	padding-bottom: 5px;
+}
+
+.calendar-monthly-header-cell {
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+	text-align: center;
 	font-weight: 600;
 }
 

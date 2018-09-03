@@ -4,7 +4,7 @@
 var WorkSpace = (function() {
 
     // Keine ContextMenus!
-//     document.body.addEventListener("contextmenu", function(evt) {
+//    document.body.addEventListener("contextmenu", function(evt) {
 //	evt.preventDefault();
 //	evt.stopPropagation();
 //    }, false);
@@ -16,7 +16,6 @@ var WorkSpace = (function() {
 	evt.stopPropagation();
     }, false);
 
-    
     menuIcon = document.getElementById("main-view-menu-icon");
     menuIcon.addEventListener("click", function() {
 	MainMenu.show();
@@ -210,13 +209,21 @@ WorkSpaceFrame.prototype.close = function() {
  */
 WorkSpaceFrame.prototype.save = function() {
 
-    var val = new Validator();
-    if (val.validate(this.body)) {
+    if (this.validate()) {
 	if (this.onSave) {
 	    this.onSave();
 	}
 	UIUtils.removeElement(this.frame);
     }
+}
+
+/**
+ * 
+ */
+WorkSpaceFrame.prototype.validate = function() {
+
+    var val = new Validator();
+    return val.validate(this.body);
 }
 
 /**
@@ -282,15 +289,15 @@ var NavigationButton = function(text, iconURL, onclick) {
 
     var img = document.createElement("img");
     img.src = iconURL;
-    
+
     var label = document.createElement("div");
     label.textContent = text;
-    
+
     var btn = document.createElement("div");
     btn.className = "navigation-button";
     btn.appendChild(img);
     btn.appendChild(label);
-    
+
     btn.addEventListener("click", function() {
 	onclick();
     });
@@ -350,6 +357,11 @@ var MainMenu = (function() {
 		new AdminView();
 	    }));
 	}
+//
+//	content.appendChild(document.createElement("hr"));
+//	content.appendChild(createMenuEntry("Dokumentation", function() {
+//	    window.open("user_manual.pdf");
+//	}));
 
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
@@ -366,10 +378,15 @@ var MainMenu = (function() {
 	    content.appendChild(createMenuEntry("Anmelden", function() {
 		new LoginView();
 	    }));
-
-	    UIUtils.removeClass(content, "hidden");
-	    content.focus();
 	}
+
+//	content.appendChild(document.createElement("hr"));
+//	content.appendChild(createMenuEntry("Dokumentation", function() {
+//	    window.open("user_manual.pdf");
+//	}));
+
+	UIUtils.removeClass(content, "hidden");
+	content.focus();
     }
 
     return {
