@@ -8,33 +8,38 @@ import javax.xml.bind.annotation.XmlElement;
  */
 public class EmailSetup
 {
-    @XmlElement(name="receive")
+    @XmlElement(name = "is-mail-enabled")
+    public boolean isMailEnabled = false;
+
+    @XmlElement(name = "receive")
     public ConnectionDesc receive;
-    
-    @XmlElement(name="send")
+
+    @XmlElement(name = "send")
     public SendConnectionDesc send;
-    
+
+
     /**
      *
      */
-    public static class ConnectionDesc {
+    public static class ConnectionDesc
+    {
 
-        @XmlElement(name="host")
+        @XmlElement(name = "host")
         public String host;
-        
-        @XmlElement(name="port")
+
+        @XmlElement(name = "port")
         public Integer port;
-        
-        @XmlElement(name="user")
+
+        @XmlElement(name = "user")
         public String user;
 
-        @XmlElement(name="pwd")
+        @XmlElement(name = "pwd")
         public String passwd;
 
-        @XmlElement(name="use-start-tls")
-        public boolean useStartTLS;  
-        
-        @XmlElement(name="protocol")
+        @XmlElement(name = "use-start-tls")
+        public boolean useStartTLS;
+
+        @XmlElement(name = "protocol")
         public String protocol;
     }
 
@@ -42,9 +47,10 @@ public class EmailSetup
      * @author anderl
      *
      */
-    public static class SendConnectionDesc extends ConnectionDesc {
-        
-        @XmlElement(name="from")
+    public static class SendConnectionDesc extends ConnectionDesc
+    {
+
+        @XmlElement(name = "from")
         public String from;
     }
 }

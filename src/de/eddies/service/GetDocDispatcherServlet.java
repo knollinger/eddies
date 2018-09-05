@@ -74,10 +74,6 @@ public class GetDocDispatcherServlet extends HttpServlet
     {
         try
         {
-            rsp.setDateHeader("Expires", new Date(0).getTime());
-            rsp.setDateHeader("Last-Modified", new Date(0).getTime());
-            rsp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0");
-            rsp.setHeader("Pragma", "no-cache");
             handler.handleRequest(req, rsp, session);
         }
         catch (Exception e)

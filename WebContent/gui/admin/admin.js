@@ -14,7 +14,7 @@ AdminView.prototype = Object.create(WorkSpaceFrame.prototype);
 AdminView.prototype.setupUI = function() {
 
     var btnBox = this.body.querySelector(".navigation-button-box");
-    btnBox.appendChild(new NavigationButton("Crew verwalten", "gui/images/person.svg", function() {
+    btnBox.appendChild(new NavigationButton("Crew verwalten", "gui/images/person-group.svg", function() {
 	new MemberEditor();
     }));
 
@@ -44,7 +44,8 @@ var OpeningHoursEditor = function() {
     WorkSpaceFrame.call(this, "gui/admin/opening_hours_editor.html", function() {
 
 	self.enableSaveButton(false);
-	self.loadModel(function() {
+	OpenHoursModelHelper.load(function(model) {
+	    self.model = model;
 	    self.bindModel();
 	});
     });
@@ -56,37 +57,6 @@ OpeningHoursEditor.prototype = Object.create(WorkSpaceFrame.prototype);
  */
 OpeningHoursEditor.prototype.getTitle = function() {
     return "Standard-Öffnungszeiten bearbeiten";
-}
-
-/**
- * 
- */
-OpeningHoursEditor.prototype.loadModel = function(onsuccess) {
-
-    var self = this;
-    var caller = new ServiceCaller();
-    caller.onSuccess = function(rsp) {
-	switch (rsp.documentElement.nodeName) {
-	case "opening-hours-model":
-	    self.model = new Model(rsp);
-	    onsuccess();
-	    break;
-
-	case "error-response":
-	    var title = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_ERROR_TITLE");
-	    var messg = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
-	    new MessageBox(MessageBox.ERROR, title, messg);
-	    break;
-	}
-    }
-    caller.onError = function(req, status) {
-	var title = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_ERROR_TITLE");
-	var messg = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_TECH_ERROR", status);
-	new MessageBox(MessageBox.ERROR, title, messg);
-    }
-
-    var req = XmlUtils.createDocument("get-opening-hours-model");
-    caller.invokeService(req);
 }
 
 /**
@@ -129,25 +99,138 @@ OpeningHoursEditor.prototype.bindOneDay = function(dayOfWeek) {
  */
 OpeningHoursEditor.prototype.onSave = function() {
 
-    var self = this;
-    var caller = new ServiceCaller();
-    caller.onSuccess = function(rsp) {
-	switch (rsp.documentElement.nodeName) {
-	case "save-opening-hours-model-ok-rsp":
-	    break;
+    OpenHoursModelHelper.save(this.model, function() {
+    });
+}
 
-	case "error-response":
-	    var title = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_ERROR_TITLE");
-	    var messg = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
-	    new MessageBox(MessageBox.ERROR, title, messg);
-	    break;
+/*---------------------------------------------------------------------------*/
+/**
+ * 
+ */
+var OpenHoursModel = function(xmlDoc) {
+
+    Model.call(this, xmlDoc);
+}
+OpenHoursModel.prototype = Object.create(Model.prototype);
+
+/**
+ * liefere den Öffnungs-Zeit
+ */
+OpenHoursModel.prototype.getFrom = function(date) {
+
+    var result = null;
+    var xpath = "//opening-hours-model/entry[day-of-week='" + date.getDay() + "']/from";
+    var from = this.getValue(xpath);
+    if(from) {
+	var time = DateTimeUtils.parseTime(from, "hh:mm");
+	result = new Date(date);
+	result.setHours(time.getHours());
+	result.setMinutes(time.getMinutes());
+	result.setSeconds(0);
+    }
+    return result;
+}
+
+/**
+ * liefere den Zeit des schliessens
+ */
+OpenHoursModel.prototype.getUntil = function(date) {
+
+    var result = null;
+    var xpath = "//opening-hours-model/entry[day-of-week='" + date.getDay() + "']/until";
+    var until = this.getValue(xpath);
+    if(until) {
+	var time = DateTimeUtils.parseTime(until, "hh:mm");
+	result = new Date(date);
+	result.setHours(time.getHours());
+	result.setMinutes(time.getMinutes());
+	result.setSeconds(0);
+    }
+    return result;
+}
+
+/**
+ * liefere den Zeit des schliessens
+ */
+OpenHoursModel.prototype.isOpen = function(date) {
+
+    return this.getFrom(date) && this.getUntil(date);
+}
+
+/*---------------------------------------------------------------------------*/
+/**
+ * 
+ */
+var OpenHoursModelHelper = (function() {
+
+    return {
+
+	/**
+	 * lade das Model der Öffnungszeiten.
+	 * 
+	 * @param onsuccess
+	 *                wird gerufen, wenn das laden erfolgreich war. als
+	 *                Parameter wird das OpenHoursModel übergeben
+	 */
+	load : function(onsuccess) {
+
+	    var caller = new ServiceCaller();
+	    caller.onSuccess = function(rsp) {
+		switch (rsp.documentElement.nodeName) {
+		case "opening-hours-model":
+		    onsuccess(new OpenHoursModel(rsp));
+		    break;
+
+		case "error-response":
+		    var title = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_ERROR_TITLE");
+		    var messg = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+		    new MessageBox(MessageBox.ERROR, title, messg);
+		    break;
+		}
+	    }
+	    caller.onError = function(req, status) {
+		var title = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_ERROR_TITLE");
+		var messg = MessageCatalog.getMessage("LOAD_OPENING_HOURS_MODEL_TECH_ERROR", status);
+		new MessageBox(MessageBox.ERROR, title, messg);
+	    }
+
+	    var req = XmlUtils.createDocument("get-opening-hours-model");
+	    caller.invokeService(req);
+
+	},
+
+	/**
+	 * speichere das Model
+	 * 
+	 * @param model
+	 *                das model
+	 * @param onsuccess
+	 *                wird nach dem speichern gerufen
+	 */
+	save : function(model, onsuccess) {
+
+	    var caller = new ServiceCaller();
+	    caller.onSuccess = function(rsp) {
+		switch (rsp.documentElement.nodeName) {
+		case "save-opening-hours-model-ok-rsp":
+		    onsuccess();
+		    break;
+
+		case "error-response":
+		    var title = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_ERROR_TITLE");
+		    var messg = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
+		    new MessageBox(MessageBox.ERROR, title, messg);
+		    break;
+		}
+	    }
+	    caller.onError = function(req, status) {
+		var title = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_ERROR_TITLE");
+		var messg = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_TECH_ERROR", status);
+		new MessageBox(MessageBox.ERROR, title, messg);
+	    }
+
+	    caller.invokeService(model.getDocument());
+
 	}
     }
-    caller.onError = function(req, status) {
-	var title = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_ERROR_TITLE");
-	var messg = MessageCatalog.getMessage("SAVE_OPENING_HOURS_MODEL_TECH_ERROR", status);
-	new MessageBox(MessageBox.ERROR, title, messg);
-    }
-
-    caller.invokeService(this.model.getDocument());
-}
+})();

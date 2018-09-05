@@ -4,10 +4,10 @@
 var WorkSpace = (function() {
 
     // Keine ContextMenus!
-//    document.body.addEventListener("contextmenu", function(evt) {
-//	evt.preventDefault();
-//	evt.stopPropagation();
-//    }, false);
+    // document.body.addEventListener("contextmenu", function(evt) {
+    // evt.preventDefault();
+    // evt.stopPropagation();
+    // }, false);
 
     // prevent touchmove!
     document.body.addEventListener("touchmove", function(evt) {
@@ -16,7 +16,7 @@ var WorkSpace = (function() {
 	evt.stopPropagation();
     }, false);
 
-    menuIcon = document.getElementById("main-view-menu-icon");
+    var menuIcon = document.getElementById("main-view-menu-icon");
     menuIcon.addEventListener("click", function() {
 	MainMenu.show();
     });
@@ -285,6 +285,14 @@ WorkSpaceActionButton.prototype.click = function(val) {
 /**
  * 
  */
+WorkSpaceActionButton.prototype.getUI = function() {
+
+    return this.ui;
+}
+
+/**
+ * 
+ */
 var NavigationButton = function(text, iconURL, onclick) {
 
     var img = document.createElement("img");
@@ -357,11 +365,11 @@ var MainMenu = (function() {
 		new AdminView();
 	    }));
 	}
-//
-//	content.appendChild(document.createElement("hr"));
-//	content.appendChild(createMenuEntry("Dokumentation", function() {
-//	    window.open("user_manual.pdf");
-//	}));
+
+	content.appendChild(document.createElement("hr"));
+	content.appendChild(createMenuEntry("Bug/Idee melden", function() {
+	    window.open("https://github.com/knollinger/eddies/issues");
+	}));
 
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
@@ -380,10 +388,10 @@ var MainMenu = (function() {
 	    }));
 	}
 
-//	content.appendChild(document.createElement("hr"));
-//	content.appendChild(createMenuEntry("Dokumentation", function() {
-//	    window.open("user_manual.pdf");
-//	}));
+	// content.appendChild(document.createElement("hr"));
+	// content.appendChild(createMenuEntry("Dokumentation", function() {
+	// window.open("user_manual.pdf");
+	// }));
 
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
@@ -429,3 +437,120 @@ var MainMenu = (function() {
 	}
     }
 })();
+
+/*---------------------------------------------------------------------------*/
+/**
+ * PopupMenu
+ */
+var PopupMenu = function(anchor) {
+
+    this.anchor = anchor;
+    this.makeUI();
+    this.adjustToAnchor();
+}
+
+/**
+ * 
+ */
+PopupMenu.prototype.makeUI = function() {
+
+    this.ui = document.createElement("div");
+    this.ui.className = "popup-menu-cnr";
+    this.ui.tabIndex = "0";
+
+    document.body.appendChild(this.ui);
+    this.ui.focus();
+
+    var self = this;
+    this.ui.addEventListener("blur", function() {
+	self.close();
+    });
+    this.ui.addEventListener("keydown", function(evt) {
+	if (evt.keyCode == 27) {
+	    self.close();
+	}
+    });
+}
+
+/**
+ * 
+ */
+PopupMenu.prototype.close = function() {
+
+    var ui = this.ui;
+    this.ui = null;
+    if (ui) {
+	UIUtils.removeElement(ui);
+    }
+}
+
+/**
+ * 
+ */
+PopupMenu.prototype.clear = function() {
+
+    UIUtils.clearChilds(this.ui);
+}
+
+/**
+ * 
+ */
+PopupMenu.prototype.makeMenuItem = function(text, onclick) {
+
+    var item = document.createElement("div");
+    item.className = "popup-menu-item";
+    item.textContent = text;
+
+    var self = this;
+    item.addEventListener("click", function() {
+	self.close();
+	onclick();
+    });
+    this.ui.appendChild(item);
+    this.adjustToAnchor();
+}
+
+/**
+ * 
+ */
+PopupMenu.prototype.makeSeparator = function() {
+
+    this.ui.appendChild(document.createElement("hr"));
+}
+
+/**
+ * 
+ */
+PopupMenu.prototype.adjustToAnchor = function() {
+
+    var clazz;
+    var anchorRect = this.anchor.getBoundingClientRect();
+    var tooltipRect = this.ui.getBoundingClientRect();
+
+    var left = anchorRect.left;
+    var top = anchorRect.top;
+    if (left < window.innerWidth / 2) {
+
+	if (top < window.innerHeight / 2) {
+	    clazz = "popup-top-left";
+	    top += anchorRect.height + 5;
+	} else {
+	    clazz = "popup-bottom-left";
+	    top -= (tooltipRect.height + 5);
+	}
+    } else {
+	if (top < window.innerHeight / 2) {
+	    clazz = "popup-top-right";
+	    top += anchorRect.height + 5;
+	} else {
+	    clazz = "popup-bottom-right";
+	    top -= (tooltipRect.height + 5);
+	}
+	left += anchorRect.width;
+	left -= tooltipRect.width;
+    }
+
+    this.ui.style.top = window.scrollY + top + "px";
+    this.ui.style.left = window.scrollX + left + "px";
+    UIUtils.addClass(this.ui, clazz);
+}

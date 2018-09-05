@@ -27,7 +27,7 @@ public class GetOpeningHoursModelHandler implements IXmlServiceHandler
     @Override
     public boolean needSession()
     {
-        return true;
+        return false;
     }
 
     /* (non-Javadoc)

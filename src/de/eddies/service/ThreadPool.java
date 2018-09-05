@@ -48,7 +48,7 @@ public class ThreadPool
             int maxSize = coreSize * 2;
             int keepAlive = 60;
             BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
-            ThreadFactory factory = new DaemonFactory();
+            ThreadFactory factory = new DaemonThreadFactory();
             RejectedExecutionHandler rejectedHandler = new ThreadPoolExecutor.CallerRunsPolicy();
             this.exec = new ThreadPoolExecutor(coreSize, maxSize, keepAlive, TimeUnit.SECONDS, queue, factory,
                 rejectedHandler);
@@ -85,38 +85,5 @@ public class ThreadPool
             throw new IllegalStateException("ThreadPool not started.");
         }
         this.exec.submit(r);
-    }
-
-    /**
-     * @author anderl
-     *
-     */
-    private static class DaemonFactory implements ThreadFactory
-    {
-
-        private static UncaughtExceptionHandler uncaughtHandler = new MyUncaughtExceptionHandler();
-        @Override
-        public Thread newThread(Runnable r)
-        {
-            Thread t = new Thread(r);
-            t.setDaemon(true);
-            t.setUncaughtExceptionHandler(uncaughtHandler);
-            return t;
-        }
-    }
-
-    /**
-     * @author anderl
-     *
-     */
-    private static class MyUncaughtExceptionHandler implements UncaughtExceptionHandler
-    {
-
-        @Override
-        public void uncaughtException(Thread arg0, Throwable arg1)
-        {
-            // TODO Auto-generated method stub
-
-        }
     }
 }

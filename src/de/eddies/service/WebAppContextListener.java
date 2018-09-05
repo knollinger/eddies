@@ -23,7 +23,9 @@ public class WebAppContextListener implements ServletContextListener
         {
             ConnectionPool.init();
             ThreadPool.getInstance().startup();
-            ThreadPool.getInstance().submit(new CalendarGapScanner());
+            
+            MidnightScheduler.getInstance().startup();
+            MidnightScheduler.getInstance().schedule(new CalendarGapScanner());
         }
         catch (Exception e)
         {
@@ -37,6 +39,7 @@ public class WebAppContextListener implements ServletContextListener
      */
     public void contextDestroyed(ServletContextEvent arg0)
     {
+        MidnightScheduler.getInstance().shutdown();
         ThreadPool.getInstance().shutdown();
     }
 }

@@ -1,0 +1,4 @@
+CREATE TABLE `EDDIES`.`notes` (
+  `id` INT NOT NULL,
+  `title` VARCHAR(200) NOT NULL,
+  `text` VARCHAR(4096) NOT NULL);

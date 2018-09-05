@@ -7,6 +7,6 @@ Stand vom: $TODAY$
 |===========================
 | Datum | Theki | Heinzelmännchen
 {ROW}
-| $DATE$ | $KEEPER$ | $PURIFIER$
+| $DATE$ | $KEEPER$  | $PURIFIER$
 {/ROW}
 |===========================

@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
+import de.eddies.member.MemberDBUtils;
 import de.eddies.service.ErrorResponse;
 import de.eddies.service.IJAXBObject;
 import de.eddies.service.IXmlServiceHandler;
@@ -76,6 +77,7 @@ public class GetCalendarHandler implements IXmlServiceHandler
             CalendarModel rsp = new CalendarModel();
             rsp.keeperEntries = this.getKeeperTermins(req, conn);
             rsp.purifierEntries = this.getPurifierTermins(req, conn);
+            rsp.members = MemberDBUtils.getAllMembers(conn);
             result = rsp;
         }
         catch (SQLException e)

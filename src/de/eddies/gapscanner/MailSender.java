@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -41,7 +42,10 @@ import de.eddies.setup.SetupReader;
 import de.eddies.utils.DateComparator;
 import de.eddies.utils.IOUtils;
 
-public class MailSender
+/**
+ *
+ */
+class MailSender
 {
     private static final String SUBJECT = "Eddies: offene Theken-Termine";
     private static SimpleDateFormat DATE_FMT = new SimpleDateFormat("EE\ndd.MM.yyyy");
@@ -54,15 +58,17 @@ public class MailSender
     {
         try
         {
-            Message msg = MailSender.composeMessage(allGaps, conn);
-            Transport.send(msg);
+            if (SetupReader.getSetup().getEmailSetup().isMailEnabled)
+            {
+                Message msg = MailSender.composeMessage(allGaps, conn);
+                Transport.send(msg);
+            }
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
     }
-
 
     /**
      * @param gaps
@@ -80,8 +86,7 @@ public class MailSender
         msg.setSubject(SUBJECT);
 
         msg.setFrom(new InternetAddress(SetupReader.getSetup().getEmailSetup().send.from));
-        //        msg.setRecipients(RecipientType.TO, MailSender.getRecipients(conn));
-        msg.setRecipient(RecipientType.TO, new InternetAddress("anderl.knollinger@gmail.com"));
+        msg.setRecipients(RecipientType.TO, MailSender.getRecipients(conn));
 
         BodyPart msgBodyPart = new MimeBodyPart();
         msgBodyPart.setContent(MailSender.composeBody(gaps), "text/html");
@@ -103,12 +108,13 @@ public class MailSender
 
         return msg;
     }
-    
+
     /**
      * @return
      */
-    private static Date getStartDate() {
-        
+    private static Date getStartDate()
+    {
+
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(System.currentTimeMillis());
         return new Date(c.getTimeInMillis());
@@ -117,22 +123,24 @@ public class MailSender
     /**
      * @return
      */
-    private static Date getEndDate() {
-        
+    private static Date getEndDate()
+    {
+
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(System.currentTimeMillis());
         c.set(Calendar.DAY_OF_MONTH, c.get(Calendar.DAY_OF_MONTH) + 7);
         return new Date(c.getTimeInMillis());
     }
-    
+
     /**
      * 
      */
-    private static String getAttachmentName() {
+    private static String getAttachmentName()
+    {
 
         Date today = new Date(System.currentTimeMillis());
         SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy");
-        
+
         return String.format("Eddies-Schichtplanung Stand vom %1$s", fmt.format(today));
     }
 
@@ -172,7 +180,7 @@ public class MailSender
         List<Date> keys = new ArrayList<>();
         keys.addAll(allGaps.keySet());
         keys.sort(new DateComparator());
-        
+
         for (Date date : keys)
         {
             result.append("<br><b>");

@@ -363,8 +363,22 @@ td:last-child {
 
 /*---------------------------------------------------------------------------*/
 /**
- * popup/tooltip common styles
+ * popup menu
  */
+.popup-menu-cnr {
+	position: fixed;
+	background: #ffffff;
+	border: 1px solid #888888;
+	padding: 5px;
+	border-radius: 2px;
+	box-shadow: 2px 2px 2px #c0c0c0;
+	z-index: 100;
+}
+
+.popup-menu-cnr:focus {
+	outline: none;
+}
+
 
 /**
  * Pfeil oben links
@@ -573,7 +587,7 @@ td:last-child {
 	width: calc(100% - 5px) !important;
 }
 
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 400px) {
 	.grid-col-1 {
 		width: calc(50% - 5px) !important;
 	}
@@ -605,7 +619,7 @@ td:last-child {
 	background-color: white;
 }
 
-@media only screen and (min-width: 800px) {
+@media only screen and (min-width: 600px) {
 	.workspace {
 		width: 800px;
 		margin-left: auto;
@@ -633,6 +647,20 @@ td:last-child {
 	background-color: #475057;
 	color: #eff0f1;
 	font-weight: 600;
+}
+
+.workspace-title>img {
+	-webkit-flex: 0 auto;	
+	-moz-flex: 0 auto;	
+	-ms-flex: 0 auto;	
+	flex: 0 auto;	
+}
+
+.workspace-title>span {
+	-webkit-flex: 1;	
+	-moz-flex: 1;	
+	-ms-flex: 1;	
+	flex: 1;	
 }
 
 .workspace-header {
@@ -720,6 +748,7 @@ td:last-child {
 	-moz-flex: 1;
 	-ms-flex: 1;
 	flex: 1;
+	/*
 	display: -webkit-flex;
 	display: -moz-flex;
 	display: -ms-flex;
@@ -728,7 +757,21 @@ td:last-child {
 	-moz-flex-direction: column;
 	-ms-flex-direction: column;
 	flex-direction: column;
+*/
 	overflow: auto;
+}
+
+@media only screen and (min-width: 600px) {
+	.workspace-frame-body {
+		display: -webkit-flex;
+		display: -moz-flex;
+		display: -ms-flex;
+		display: flex;
+		-webkit-flex-direction: column;
+		-moz-flex-direction: column;
+		-ms-flex-direction: column;
+		flex-direction: column;
+	}
 }
 
 .workspace-frame-actionbar {
@@ -801,19 +844,25 @@ td:last-child {
 
 .workspace-frame-content-body {
 	max-width: 100%;
+	min-height: 100%;
 	padding: 10px;
 	-webkit-flex: 1;
 	-moz-flex: 1;
 	-ms-flex: 1;
 	flex: 1;
-	display: -webkit-flex;
-	display: -moz-flex;
-	display: -ms-flex;
-	display: flex;
-	-webkit-flex-direction: column;
-	-moz-flex-direction: column;
-	-ms-flex-direction: column;
-	flex-direction: column;
+}
+
+@media only screen and (min-height: 400px) {
+	.workspace-frame-content-body {
+		display: -webkit-flex;
+		display: -moz-flex;
+		display: -ms-flex;
+		display: flex;
+		-webkit-flex-direction: column;
+		-moz-flex-direction: column;
+		-ms-flex-direction: column;
+		flex-direction: column;
+	}
 }
 
 /**
@@ -852,7 +901,7 @@ td:last-child {
 
 @media only screen and (min-width: 600px) {
 	.mbox-frame {
-		width: 700px;
+		width: 500px;
 	}
 }
 
@@ -995,6 +1044,22 @@ td:last-child {
 
 .calendar-weekday-content {
 	padding: 0 5px 0 5px;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	-moz-flex-direction: column;
+	-ms-flex-direction: column;
+	flex-direction: column;	
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;	
+	padding-right: 25px; /* wegen Purifier-Symbol */
+}
+
+.calendar-weekday-row {
 	-webkit-flex: 1;
 	-moz-flex: 1;
 	-ms-flex: 1;
@@ -1008,23 +1073,28 @@ td:last-child {
 	-moz-flex-direction: row;
 	-ms-flex-direction: row;
 	flex-direction: row;
-	-webkit-align-items: center;
-	-moz-align-items: center;
-	-ms-align-items: center;
-	align-items: center;
-	-webkit-justify-content: center;
-	-moz-justify-content: center;
-	-ms-justify-content: center;
-	justify-content: center;
-	padding-right: 25px; /* wegen Purifier-Symbol */
+	-webkit-align-items: flex-end;
+	-moz-align-items: flex-end;
+	-ms-align-items: flex-end;
+	align-items: flex-end;
 }
 
-.calendar-weekday-title {
+.calendar-weekday-date {
 	white-space: nowrap;
 	-webkit-flex: 1;
 	-moz-flex: 1;
 	-ms-flex: 1;
 	flex: 1;
+}
+
+.calendar-weekday-keepers {
+	white-space: nowrap;
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .calendar-weekday-time {
@@ -1040,8 +1110,12 @@ td:last-child {
 	border-left: 20px solid #55ff7f;
 }
 
-.calendar-weekday-closed {
+.calendar-weekday-planning-gap {
 	border-left: 20px solid #ff557f;
+}
+
+.calendar-weekday-closed {
+	border-left: 20px solid #d0d0d0;
 }
 
 .calendar-today {
@@ -1153,8 +1227,12 @@ td:last-child {
 	background-color: #55ff7f;
 }
 
-.calendar-monthly-day-closed {
+.calendar-monthly-day-planning-gap {
 	background-color: #ff557f;
+}
+
+.calendar-monthly-day-closed {
+	background-color: #d0d0d0;
 }
 
 .calendar-has-purifier {
