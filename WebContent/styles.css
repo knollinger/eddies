@@ -809,12 +809,12 @@ td:last-child {
 	margin: 5px;
 }
 
-.workspace-frame-action:hover, .workspace-frame-action-checked {
-	border-color: #d0d0d0;
-	background: -webkit-linear-gradient(#f8f8f8, #e8e8e8);
-	background: -moz-linear-gradient(#f8f8f8, #e8e8e8);
-	background: -ms-linear-gradient(#f8f8f8, #e8e8e8);
-	background: linear-gradient(#f8f8f8, #e8e8e8);
+.workspace-frame-action-checked {
+	border-color: #c0c0c0;
+	background: -webkit-linear-gradient(#e0e0e0, #f8f8f8);
+	background: -moz-linear-gradient(#e0e0e0, #f8f8f8);
+	background: -ms-linear-gradient(#e0e0e0, #f8f8f8);
+	background: linear-gradient(#e0e0e0, #f8f8f8);
 }
 
 .workspace-frame-action>img {
@@ -824,6 +824,10 @@ td:last-child {
 
 .workspace-frame-action:active>img {
 	transform: translate(1px, 1px);
+}
+
+.workspace-frame-action:hover>img {
+	transform: scale(1.1, 1.1);
 }
 
 .workspace-frame-toolbox {

@@ -133,6 +133,7 @@ public class PlanningPDFCreator
         ResultSet rs = null;
 
         StringBuilder keepers = new StringBuilder();
+        
         try
         {
             stmt = conn.prepareStatement(
@@ -177,8 +178,8 @@ public class PlanningPDFCreator
      * @param part
      */
     private static void makeClosedDay(DocPart part)
-    {
-        part.replaceTag("$KEEPER$", "*Geschlossen*");        
+    {        
+        part.replaceTag("$KEEPER$", "pass:q[<color r=\"0\" b=\"0\" g=\"255\">*Geschlossen*</color>]");        
     }
 
 
@@ -199,11 +200,11 @@ public class PlanningPDFCreator
                 {
                     result.append("\n");
                 }
-                result.append("*");
+                result.append("pass:q[<color r=\"255\" b=\"0\" g=\"0\">*");
                 result.append(TIME_FMT.format(gap.getStart().toDate()));
                 result.append(" - ");
                 result.append(TIME_FMT.format(gap.getEnd().toDate()));
-                result.append("*");
+                result.append("*</color>]");
             }
         }
         part.replaceTag("$GAPS$", result.toString());
