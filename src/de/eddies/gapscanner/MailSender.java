@@ -17,7 +17,6 @@ import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -34,6 +33,8 @@ import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 import javax.xml.bind.JAXBException;
+
+import org.joda.time.Interval;
 
 import de.eddies.database.DBUtils;
 import de.eddies.mainview.PlanningPDFCreator;
@@ -54,7 +55,7 @@ class MailSender
     /**
      * @param allGaps
      */
-    public static void sendReminder(Map<Date, Intervals> allGaps, Connection conn)
+    public static void sendReminder(Map<Date, List<Interval>> allGaps, Connection conn)
     {
         try
         {
@@ -79,7 +80,7 @@ class MailSender
      * @throws SQLException
      * @throws InterruptedException 
      */
-    private static Message composeMessage(Map<Date, Intervals> gaps, Connection conn)
+    private static Message composeMessage(Map<Date, List<Interval>> gaps, Connection conn)
         throws MessagingException, JAXBException, SQLException, IOException, InterruptedException
     {
         Message msg = new MimeMessage(MailSender.getMailSession());
@@ -148,7 +149,7 @@ class MailSender
      * @return
      * @throws IOException 
      */
-    private static String composeBody(Map<Date, Intervals> allGaps) throws IOException
+    private static String composeBody(Map<Date, List<Interval>> allGaps) throws IOException
     {
         InputStream in = null;
         try
@@ -173,7 +174,7 @@ class MailSender
      * @param allGaps
      * @return
      */
-    private static String createGapSection(Map<Date, Intervals> allGaps)
+    private static String createGapSection(Map<Date, List<Interval>> allGaps)
     {
         StringBuilder result = new StringBuilder();
 
@@ -187,11 +188,11 @@ class MailSender
             result.append(DATE_FMT.format(date));
             result.append("</b><br>");
 
-            for (Interval i : allGaps.get(date).getIntervals())
+            for (Interval i : allGaps.get(date))
             {
-                result.append(TIME_FMT.format(i.getStart()));
+                result.append(TIME_FMT.format(i.getStart().toDate()));
                 result.append(" - ");
-                result.append(TIME_FMT.format(i.getEnd()));
+                result.append(TIME_FMT.format(i.getEnd().toDate()));
                 result.append("<br>");
             }
         }

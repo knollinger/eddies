@@ -123,7 +123,7 @@ OpenHoursModel.prototype.getFrom = function(date) {
     var from = this.getValue(xpath);
     if(from) {
 	var time = DateTimeUtils.parseTime(from, "hh:mm");
-	result = new Date(date);
+	result = new Date(0);
 	result.setHours(time.getHours());
 	result.setMinutes(time.getMinutes());
 	result.setSeconds(0);
@@ -141,7 +141,7 @@ OpenHoursModel.prototype.getUntil = function(date) {
     var until = this.getValue(xpath);
     if(until) {
 	var time = DateTimeUtils.parseTime(until, "hh:mm");
-	result = new Date(date);
+	result = new Date(0);
 	result.setHours(time.getHours());
 	result.setMinutes(time.getMinutes());
 	result.setSeconds(0);

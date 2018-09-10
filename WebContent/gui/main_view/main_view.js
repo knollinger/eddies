@@ -7,6 +7,7 @@ var MainViewCalendar = function() {
 
     this.currentDate = new Date();
     this.mode = MainViewCalendar.WEEKLY;
+    this.showMyTermine = false;
 
     var self = this;
     WorkSpaceFrame.call(this, "gui/main_view/calendar.html", function() {
@@ -73,7 +74,7 @@ MainViewCalendar.prototype.setupUI = function() {
 
     });
 
-    this.actionGoToday = this.createToolButton("gui/images/calendar-today.svg", "Heute", function() {
+    this.actionGoToday = this.createToolButton("gui/images/view-calendar-today.svg", "Heute", function() {
 	self.currentDate = new Date();
 	self.update();
 
@@ -95,6 +96,11 @@ MainViewCalendar.prototype.setupUI = function() {
     this.actionViewWeek.hide();
 
     if (SessionManager.hasSession()) {
+
+	this.actionViewMine = this.createToolToggleButton("gui/images/view-my-calendar.svg", "Meine Termine", function(val) {
+	    self.showMyTermine = val;
+	    self.update();
+	});
 
 	this.actionPrint = this.createToolButton("gui/images/print.svg", "Plan drucken", function() {
 
@@ -263,24 +269,38 @@ MainViewCalendar.prototype.findLastDate = function() {
  */
 MainViewCalendar.prototype.getState = function(date) {
 
-    var result;
-    var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
-    var entries = this.model.evaluateXPath(baseXPath);
-    if (entries.length == 0) {
-	if (this.openHoursModel.isOpen(date)) {
-	    result = MainViewCalendar.STATE_OPEN_WITH_GAPS;
-	} else {
-	    result = MainViewCalendar.STATE_CLOSED;
-	}
-    } else {
-	// TODO: check for GAPS
-	result = MainViewCalendar.STATE_OPEN;
+    var result = MainViewCalendar.STATE_CLOSED;
+    if (this.openHoursModel.isOpen(date)) {
+
+	result = this.hasGaps(date) ? MainViewCalendar.STATE_OPEN_WITH_GAPS : MainViewCalendar.STATE_OPEN;
     }
     return result;
 }
 MainViewCalendar.STATE_OPEN = 0;
 MainViewCalendar.STATE_OPEN_WITH_GAPS = 1;
 MainViewCalendar.STATE_CLOSED = 2;
+
+/**
+ * Prüft, ob für das angegebene Datum GAP's vorliegen. Also Zeitbereiche, welche
+ * durch die Theki-Planung noch nicht abgedeckt sind
+ * 
+ * @param date
+ *                dazu zu prüfende Datum
+ * @return true, wenn Gaps vorliegen, ansonsten false
+ */
+MainViewCalendar.prototype.hasGaps = function(date) {
+
+    var result = this.openHoursModel.isOpen(date);
+    if (result) {
+
+	var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
+	var from = this.findFrom(baseXPath);
+	var until = this.findUntil(baseXPath);
+
+	result = !from || from > this.openHoursModel.getFrom(date) || !until || until < this.openHoursModel.getUntil(date);
+    }
+    return result;
+}
 
 /**
  * Lade das Wochen-Model
@@ -299,14 +319,14 @@ MainViewCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
 	case "error-response":
 	    var title = MessageCatalog.getMessage("GET_CALENDER_ERROR_TITLE");
 	    var messg = MessageCatalog.getMessage("GET_CALENDER_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
-	    new MessageBox(MessageBox.ERROR, title, message);
+	    new MessageBox(MessageBox.ERROR, title, mess);
 	    break;
 	}
     }
     caller.onError = function(req, status) {
 	var title = MessageCatalog.getMessage("GET_CALENDER_ERROR_TITLE");
 	var messg = MessageCatalog.getMessage("GET_CALENDER_TECH_ERROR", status);
-	new MessageBox(MessageBox.ERROR, title, message);
+	new MessageBox(MessageBox.ERROR, title, mess);
     }
 
     var req = XmlUtils.createDocument("get-calendar-req");
@@ -320,9 +340,11 @@ MainViewCalendar.prototype.loadModel = function(startDate, endDate, onsuccess) {
  */
 MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
 
+    var calBody = UIUtils.getElement("workspace-frame-calendar-body");
+
     var currentDate = new Date(startDate);
     while (currentDate <= endDate) {
-	this.makeWeekDay(new Date(currentDate));
+	calBody.appendChild(this.makeWeekDay(new Date(currentDate)));
 	currentDate.setDate(currentDate.getDate() + 1);
     }
 }
@@ -355,7 +377,6 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
     switch (this.getState(date)) {
     case MainViewCalendar.STATE_OPEN:
 	content.className += " calendar-weekday-open";
-	row.appendChild(this.makeOpeningTimeIndicator(baseXPath));
 	break;
 
     case MainViewCalendar.STATE_OPEN_WITH_GAPS:
@@ -365,8 +386,8 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
     case MainViewCalendar.STATE_CLOSED:
 	content.className += " calendar-weekday-closed";
 	break;
-
     }
+    row.appendChild(this.makeOpeningTimeIndicator(baseXPath));
 
     row = document.createElement("div");
     row.className = "calendar-weekday-row";
@@ -383,10 +404,14 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
 	if (self.hasPurifier(date)) {
 	    content.className += " calendar-has-purifier"
 	}
+	
+	if(self.showMyTermine && !self.isMyWorkingDay(date)) {
+	    content.className += " disabled";
+	}
 
 	row.appendChild(this.makeNameSection(baseXPath));
     }
-    UIUtils.getElement("workspace-frame-calendar-body").appendChild(day);
+    return day;
 }
 
 /**
@@ -484,11 +509,11 @@ MainViewCalendar.prototype.makeMonthDay = function(date) {
     case MainViewCalendar.STATE_OPEN:
 	header.className += " calendar-monthly-day-open";
 	break;
-	
+
     case MainViewCalendar.STATE_OPEN_WITH_GAPS:
 	header.className += " calendar-monthly-day-planning-gap";
 	break;
-	
+
     case MainViewCalendar.STATE_CLOSED:
 	header.className += " calendar-monthly-day-closed";
     }
@@ -500,6 +525,10 @@ MainViewCalendar.prototype.makeMonthDay = function(date) {
 	var begin = DateTimeUtils.formatTime(this.findFrom(baseXPath), "{hh}:{mm}");
 	var end = DateTimeUtils.formatTime(this.findUntil(baseXPath), "{hh}:{mm}");
 	content.textContent = begin + " " + end;
+    } else {
+	// thats just to ensure, empty cells (without any times) will be
+	// rendernd in the same height
+	content.innerHTML = "&nbsp; &nbsp;";
     }
 
     var self = this;
@@ -511,8 +540,13 @@ MainViewCalendar.prototype.makeMonthDay = function(date) {
 	});
 
 	if (self.hasPurifier(date)) {
-	    this.className += " calendar-has-purifier";
+	    cell.className += " calendar-has-purifier";
 	}
+	
+	if(self.showMyTermine && !self.isMyWorkingDay(date)) {
+	    cell.className += " disabled";
+	}
+	
 
     }
     return cell;
@@ -533,11 +567,17 @@ MainViewCalendar.prototype.hasPurifier = function(date) {
  */
 MainViewCalendar.prototype.makeOpeningTimeIndicator = function(xpath) {
 
-    var begin = DateTimeUtils.formatTime(this.findFrom(xpath), "{hh}:{mm}");
-    var end = DateTimeUtils.formatTime(this.findUntil(xpath), "{hh}:{mm}");
     var time = document.createElement("div");
     time.className = "calendar-weekday-time";
-    time.textContent = begin + " - " + end;
+
+    var from = this.findFrom(xpath);
+    var until = this.findUntil(xpath);
+    if (from && until) {
+
+	var begin = DateTimeUtils.formatTime(from, "{hh}:{mm}");
+	var end = DateTimeUtils.formatTime(until, "{hh}:{mm}");
+	time.textContent = begin + " - " + end;
+    }
 
     return time;
 }
@@ -558,6 +598,7 @@ MainViewCalendar.prototype.findFrom = function(xpath) {
     }
     return result;
 }
+
 /**
  * 
  */
@@ -571,6 +612,24 @@ MainViewCalendar.prototype.findUntil = function(xpath) {
 	if (result == null || curr > result) {
 	    result = curr;
 	}
+    }
+    return result;
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.isMyWorkingDay = function(date) {
+
+    var result = false;
+
+    var id = SessionManager.getCurrentMemberId();
+    if (id) {
+
+	 var strDate = DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}");
+	 
+	 var xpath = "//calendar-model/keeper-entries/keeper-entry[keeper = '" + id + "' and date = '" + strDate + "']";
+	 result = this.model.evaluateXPath(xpath).length != 0;
     }
     return result;
 }

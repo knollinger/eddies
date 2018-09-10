@@ -23,52 +23,59 @@ function ServiceCaller() {
      * aufgerufen (sofern definiert)
      * 
      * @param request
-     *            das XMLDocument, welches den Request beschreibt
+     *                das XMLDocument, welches den Request beschreibt
      */
     this.invokeService = function(request) {
 
-        BusyIndicator.show();
-        
-        var self = this;
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "xmlservice", true);
-        xhr.onreadystatechange = function(evt) {
+	BusyIndicator.show();
 
-            if (xhr.readyState == XMLHttpRequest.prototype.DONE) {
+	var self = this;
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "xmlservice", true);
+	xhr.onreadystatechange = function(evt) {
 
-                BusyIndicator.hide();
-                
-                if (xhr.status == 200) {
+	    if (xhr.readyState == XMLHttpRequest.prototype.DONE) {
 
-                    var response = xhr.responseXML;
-                    if(response != null && response.documentElement.nodeName == "session-lost-response") {
-                     
-                        var title = MessageCatalog.getMessage("SVCCALLER_TITLE_ERROR");
-                        var msg = MessageCatalog.getMessage("SVCCALLER_MSG_SESSION_LOST");
-                        new MessageBox(MessageBox.INFO, title, msg, function() {
-                            new LoginView();
-                        });
-                    }
-                    else {
-                        if (self.onSuccess != null) {
-                            self.onSuccess(response);
-                        }
-                    }
-                } else {
+		BusyIndicator.hide();
 
-                    if (self.onError != null) {
-                        self.onError(request, xhr.status);
-                    }
-                }
-            }
-        }
-        
-        xhr.onerror = function(evt) {
-//            var title = Messages.getMessage("SVCCALLER_TITLE_ERROR");
-//            var msg = Messages.getMessage("SVCCALLER_MSG_TECH_ERROR");
-//            MessageBox.showWarningMsg(title, msg);
-            BusyIndicator.hide();
-        }        
-        xhr.send(XmlUtils.stringify(request));
+		switch (xhr.status) {
+		case 0:
+		    var title = MessageCatalog.getMessage("SVCCALLER_TITLE_ERROR");
+		    var msg = MessageCatalog.getMessage("SVCCALLER_MSG_CONNECTION_LOST");
+		    new MessageBox(MessageBox.ERROR, title, msg);
+		    break;
+
+		case 200:
+
+		    var response = xhr.responseXML;
+		    if (response != null && response.documentElement.nodeName == "session-lost-response") {
+
+			var title = MessageCatalog.getMessage("SVCCALLER_TITLE_ERROR");
+			var msg = MessageCatalog.getMessage("SVCCALLER_MSG_SESSION_LOST");
+			new MessageBox(MessageBox.ERROR, title, msg, function() {
+			    new LoginView();
+			});
+		    } else {
+			if (self.onSuccess != null) {
+			    self.onSuccess(response);
+			}
+		    }
+		    break;
+
+		default:
+		    if (self.onError != null) {
+			self.onError(request, xhr.status);
+		    }
+		}
+	    }
+	}
+
+	xhr.onerror = function(evt) {
+	    // var title = Messages.getMessage("SVCCALLER_TITLE_ERROR");
+	    // var msg = Messages.getMessage("SVCCALLER_MSG_TECH_ERROR");
+	    // MessageBox.showWarningMsg(title, msg);
+	    BusyIndicator.hide();
+	}
+	xhr.send(XmlUtils.stringify(request));
     }
 }

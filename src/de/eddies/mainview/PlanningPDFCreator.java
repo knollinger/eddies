@@ -9,9 +9,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.Interval;
 
 import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
+import de.eddies.gapscanner.GapFinder;
 import de.eddies.pdf.DocBuilder;
 import de.eddies.pdf.PDFCreator;
 import de.eddies.pdf.DocBuilder.DocPart;
@@ -35,17 +40,21 @@ public class PlanningPDFCreator
      * @throws IOException 
      * @throws InterruptedException 
      */
-    public static byte[] createPlanningPDF(Date from, Date until, Connection conn) throws SQLException, IOException, InterruptedException
+    public static byte[] createPlanningPDF(Date from, Date until, Connection conn)
+        throws SQLException, IOException, InterruptedException
     {
         InputStream in = null;
         try
         {
-            String docPath = "/" + PlanningPDFCreator.class.getPackage().getName().replaceAll("\\.", "/") + "/planning.adoc";
+            String docPath = "/" + PlanningPDFCreator.class.getPackage().getName().replaceAll("\\.", "/")
+                + "/planning.adoc";
             in = PlanningPDFCreator.class.getResourceAsStream(docPath);
             DocBuilder db = new DocBuilder(in);
 
+            Map<Date, List<Interval>> allGaps = GapFinder.findAllGaps(from, until, conn);
+
             PlanningPDFCreator.makeHeader(db, from, until);
-            PlanningPDFCreator.makeRows(db, from, until);
+            PlanningPDFCreator.makeRows(db, from, until, allGaps, conn);
 
             return PDFCreator.transform(db.getDocument());
 
@@ -77,41 +86,36 @@ public class PlanningPDFCreator
      * @param db
      * @param from
      * @param until
+     * @param allGaps 
      * @throws SQLException 
      */
-    private static void makeRows(DocBuilder db, Date from, Date until) throws SQLException
+    private static void makeRows(DocBuilder db, Date from, Date until, Map<Date, List<Interval>> allGaps,
+        Connection conn) throws SQLException
     {
-        Connection conn = null;
-        try
+        while (from.compareTo(until) <= 0)
         {
-            conn = ConnectionPool.getConnection();
-            while (from.compareTo(until) <= 0)
-            {
-                PlanningPDFCreator.fillOneDay(db, from, conn);
+            PlanningPDFCreator.fillOneDay(db, from, allGaps.get(from), conn);
 
-                Calendar c = Calendar.getInstance();
-                c.setTime(from);
-                c.add(Calendar.DATE, 1);
-                from = new Date(c.getTimeInMillis());
-            }
-            db.removeSection("ROW");
+            Calendar c = Calendar.getInstance();
+            c.setTime(from);
+            c.add(Calendar.DATE, 1);
+            from = new Date(c.getTimeInMillis());
         }
-        finally
-        {
-            DBUtils.closeQuitly(conn);
-        }
+        db.removeSection("ROW");
     }
 
     /**
      * @param db
      * @param date
+     * @param gaps 
      * @throws SQLException 
      */
-    private static void fillOneDay(DocBuilder db, Date date, Connection conn) throws SQLException
+    private static void fillOneDay(DocBuilder db, Date date, List<Interval> gaps, Connection conn) throws SQLException
     {
         DocPart part = db.duplicateSection("ROW");
         part.replaceTag("$DATE$", DATE_FMT.format(date));
-        PlanningPDFCreator.fillKeeper(part, date, conn);
+        PlanningPDFCreator.fillKeeper(part, date, gaps, conn);
+        PlanningPDFCreator.fillGaps(part, gaps, conn);
         PlanningPDFCreator.fillPurifier(part, date, conn);
         part.commit();
     }
@@ -119,10 +123,11 @@ public class PlanningPDFCreator
     /**
      * @param part
      * @param date
+     * @param gaps
      * @param conn
      * @throws SQLException 
      */
-    private static void fillKeeper(DocPart part, Date date, Connection conn) throws SQLException
+    private static void fillKeeper(DocPart part, Date date, List<Interval> gaps, Connection conn) throws SQLException
     {
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -134,19 +139,30 @@ public class PlanningPDFCreator
                 "select k.begin, k.end, a.zname, a.vname from keeper_termine k left join accounts a on k.member = a.id where date=? order by k.begin");
             stmt.setDate(1, date);
             rs = stmt.executeQuery();
-            while (rs.next())
+            if (!rs.next())
             {
-                String from = TIME_FMT.format(rs.getTime("k.begin"));
-                String until = TIME_FMT.format(rs.getTime("k.end"));
-                String vname = rs.getString("a.vname");
-                String zname = rs.getString("a.zname");
-                String line = String.format("%1$s-%2$s %3$s %4$s", from, until, vname, zname);
-
-                if (keepers.length() != 0)
+                if (gaps == null || gaps.isEmpty())
                 {
-                    keepers.append("\n");
+                    PlanningPDFCreator.makeClosedDay(part);
                 }
-                keepers.append(line);
+            }
+            else
+            {
+                do
+                {
+                    String from = TIME_FMT.format(rs.getTime("k.begin"));
+                    String until = TIME_FMT.format(rs.getTime("k.end"));
+                    String vname = rs.getString("a.vname");
+                    String zname = rs.getString("a.zname");
+                    String line = String.format("%1$s-%2$s %3$s %4$s", from, until, vname, zname);
+
+                    if (keepers.length() != 0)
+                    {
+                        keepers.append("\n");
+                    }
+                    keepers.append(line);
+                }
+                while (rs.next());
             }
             part.replaceTag("$KEEPER$", keepers.toString());
         }
@@ -155,6 +171,40 @@ public class PlanningPDFCreator
             DBUtils.closeQuitly(rs);
             DBUtils.closeQuitly(stmt);
         }
+    }
+
+    /**
+     * @param part
+     */
+    private static void makeClosedDay(DocPart part)
+    {
+        part.replaceTag("$KEEPER$", "*Geschlossen*");        
+    }
+
+
+    /**
+     * @param part
+     * @param gaps
+     * @param conn
+     * @throws SQLException 
+     */
+    private static void fillGaps(DocPart part, List<Interval> gaps, Connection conn) throws SQLException
+    {
+        StringBuilder result = new StringBuilder();
+        if (gaps != null)
+        {
+            for (Interval gap : gaps)
+            {
+                if (result.length() > 0)
+                {
+                    result.append("\n");
+                }
+                result.append(TIME_FMT.format(gap.getStart().toDate()));
+                result.append(" - ");
+                result.append(TIME_FMT.format(gap.getEnd().toDate()));
+            }
+        }
+        part.replaceTag("$GAPS$", result.toString());
     }
 
     /**

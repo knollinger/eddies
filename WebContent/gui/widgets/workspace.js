@@ -182,6 +182,30 @@ WorkSpaceFrame.prototype.createToolButton = function(imgUrl, title, onclick) {
 /**
  * 
  */
+WorkSpaceFrame.prototype.createToolToggleButton = function(imgUrl, title, onclick) {
+
+    var toggle = document.createElement("input");
+    toggle.type = "checkbox";
+    toggle.className = "hidden";
+
+    btn = this.createToolButton(imgUrl, title, function() {
+
+	toggle.checked = !toggle.checked;
+	if (toggle.checked) {
+	    UIUtils.addClass(btn.ui, "workspace-frame-action-checked");
+	} else {
+	    UIUtils.removeClass(btn.ui, "workspace-frame-action-checked");
+	}
+	onclick(toggle.checked);
+    });
+    btn.ui.appendChild(toggle);
+
+    return btn;
+}
+
+/**
+ * 
+ */
 WorkSpaceFrame.prototype.getAnnotations = function() {
 
     var result = {};

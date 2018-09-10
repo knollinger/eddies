@@ -197,6 +197,10 @@ td:last-child {
 	border-left: 1px solid red !important;
 }
 
+.disabled {
+	color: #d0d0d0;
+}
+
 .clickable {
 	cursor: pointer;
 }
@@ -378,7 +382,6 @@ td:last-child {
 .popup-menu-cnr:focus {
 	outline: none;
 }
-
 
 /**
  * Pfeil oben links
@@ -650,17 +653,17 @@ td:last-child {
 }
 
 .workspace-title>img {
-	-webkit-flex: 0 auto;	
-	-moz-flex: 0 auto;	
-	-ms-flex: 0 auto;	
-	flex: 0 auto;	
+	-webkit-flex: 0 auto;
+	-moz-flex: 0 auto;
+	-ms-flex: 0 auto;
+	flex: 0 auto;
 }
 
 .workspace-title>span {
-	-webkit-flex: 1;	
-	-moz-flex: 1;	
-	-ms-flex: 1;	
-	flex: 1;	
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
 }
 
 .workspace-header {
@@ -806,7 +809,7 @@ td:last-child {
 	margin: 5px;
 }
 
-.workspace-frame-action:hover {
+.workspace-frame-action:hover, .workspace-frame-action-checked {
 	border-color: #d0d0d0;
 	background: -webkit-linear-gradient(#f8f8f8, #e8e8e8);
 	background: -moz-linear-gradient(#f8f8f8, #e8e8e8);
@@ -926,9 +929,13 @@ td:last-child {
 }
 
 .mbox-icon {
-	display: block;
 	margin-bottom: 10px;
+	height: 32px;
 	width: 32px;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-size: 100%;
+	
 }
 
 .mbox-footer {
@@ -1012,14 +1019,6 @@ td:last-child {
 }
 
 /*---------------------------------------------------------------------------*/
-#calendar-go-back {
-	background-image: url('gui/images/go-back.svg');
-}
-
-#calendar-go-fore {
-	background-image: url('gui/images/go-fore.svg');
-}
-
 .calendar-weekday {
 	padding: 5px 0 5px 0;
 	-webkit-flex: 1;
@@ -1051,11 +1050,11 @@ td:last-child {
 	-webkit-flex-direction: column;
 	-moz-flex-direction: column;
 	-ms-flex-direction: column;
-	flex-direction: column;	
+	flex-direction: column;
 	-webkit-flex: 1;
 	-moz-flex: 1;
 	-ms-flex: 1;
-	flex: 1;	
+	flex: 1;
 	padding-right: 25px; /* wegen Purifier-Symbol */
 }
 

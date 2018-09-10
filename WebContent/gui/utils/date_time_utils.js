@@ -104,7 +104,7 @@ var DateTimeUtils = (function() {
 		var minutes = Number(parts[fmt['mm']]);
 		var seconds = Number(parts[fmt['ss']]);
 
-		result = new Date();
+		result = new Date(0);
 		result.setHours(parseInt(hours, 10) || 0);
 		result.setMinutes(parseInt(minutes, 10) || 0);
 		result.setSeconds(parseInt(seconds, 10) || 0);

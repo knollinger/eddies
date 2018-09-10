@@ -8,6 +8,7 @@ var MessageCatalog = (function() {
 
 	SVCCALLER_TITLE_ERROR : "Fehler bei der Server-Kommunikation",
 	SVCCALLER_MSG_SESSION_LOST : "Deine Server-Sitzung ist abgelaufen, bitte melde Dich erneut an",
+	SVCCALLER_MSG_CONNECTION_LOST : "Der Server ist nicht erreichbar.<br><br>Bitte prüfe Deine Internet-Verbindung",
 	
 	PWDCHANGE_ERROR_TITLE : "Fehler beim Kennwort-Wechsel",
 	PWDCHANGE_ERROR : "Beim &Auml;ndern des Kennworts ist ein Fehler aufgetreten.<br><br>{1}",

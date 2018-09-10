@@ -70,6 +70,14 @@ var SessionManager = (function() {
 	 */
 	isMee : function(memberId) {
 	    return model.getValue("//get-session-state-loggedin-response/id") == memberId;
+	},
+	
+	/**
+	 * 
+	 */
+	getCurrentMemberId : function() {
+	    
+	    return model ? model.getValue("//get-session-state-loggedin-response/id") : undefined;
 	}
     }
 })();

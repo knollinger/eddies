@@ -3,10 +3,10 @@
 Stand vom: $TODAY$
 {/HEADER}
 
-[width="100%", cols="2,6,4", options="header"]
+[width="100%", cols="2,6,2,4", options="header"]
 |===========================
-| Datum | Theki | Heinzelmännchen
+| Datum | Theki | noch offen | Heinzelmännchen
 {ROW}
-| $DATE$ | $KEEPER$  | $PURIFIER$
+| $DATE$ | $KEEPER$  | $GAPS$ | $PURIFIER$
 {/ROW}
 |===========================
