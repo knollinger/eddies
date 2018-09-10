@@ -199,9 +199,11 @@ public class PlanningPDFCreator
                 {
                     result.append("\n");
                 }
+                result.append("*");
                 result.append(TIME_FMT.format(gap.getStart().toDate()));
                 result.append(" - ");
                 result.append(TIME_FMT.format(gap.getEnd().toDate()));
+                result.append("*");
             }
         }
         part.replaceTag("$GAPS$", result.toString());
