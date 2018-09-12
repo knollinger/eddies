@@ -7,7 +7,6 @@ import java.sql.SQLException;
 
 import de.eddies.database.DBUtils;
 import de.eddies.service.EAction;
-import de.eddies.service.IJAXBObject;
 
 /**
  *

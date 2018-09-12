@@ -2,7 +2,6 @@ package de.eddies.service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;

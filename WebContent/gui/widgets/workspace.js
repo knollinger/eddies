@@ -14,7 +14,7 @@ var WorkSpace = (function() {
 
 	evt.preventDefault();
 	evt.stopPropagation();
-    }, false);
+    }, {passive: false});
 
     var menuIcon = document.getElementById("main-view-menu-icon");
     menuIcon.addEventListener("click", function() {

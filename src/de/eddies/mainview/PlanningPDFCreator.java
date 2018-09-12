@@ -14,12 +14,11 @@ import java.util.Map;
 
 import org.joda.time.Interval;
 
-import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
 import de.eddies.gapscanner.GapFinder;
 import de.eddies.pdf.DocBuilder;
-import de.eddies.pdf.PDFCreator;
 import de.eddies.pdf.DocBuilder.DocPart;
+import de.eddies.pdf.PDFCreator;
 import de.eddies.utils.IOUtils;
 
 /**

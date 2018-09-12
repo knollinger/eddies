@@ -76,7 +76,7 @@ MemberEditor.prototype.createRemoveAction = function() {
 	    UIUtils.removeElement(self.currEntry.container);
 	    self.entries.remove(self.currEntry);
 	    self.currEntry = self.currXPath = null;
-	    
+
 	});
     });
     action.hide();
@@ -142,15 +142,18 @@ MemberEditor.prototype.createOneEntry = function(xpath) {
     var entry = new MemberEditorEntry(this.model, xpath);
 
     var memberId = this.model.getValue(xpath + "/id");
-    if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
 
-	var self = this;
+    var self = this;
+    if (SessionManager.isAdmin()) {
+	
 	entry.container.addEventListener("click", function() {
 	    self.currXPath = xpath;
 	    self.currEntry = entry;
 	    self.actionRemove.show();
 	});
+    }
 
+    if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
 	this.model.addChangeListener(xpath, function() {
 	    var action = self.model.getValue(xpath + "/action");
 	    if (action == "NONE") {
@@ -168,12 +171,12 @@ MemberEditor.prototype.validate = function() {
 
     var val = new Validator();
     var result = true;
-    for(var i = 0; result && i < this.entries.length; i++) {
-	
+    for (var i = 0; result && i < this.entries.length; i++) {
+
 	var curr = this.entries[i];
 	curr.expand();
 	result = val.validate(curr.container);
-	
+
     }
     return result;
 }
@@ -328,7 +331,7 @@ MemberEditorEntry.prototype.createLabel = function() {
  * 
  */
 MemberEditorEntry.prototype.expand = function() {
-    
+
     this.radio.click();
 }
 
@@ -475,11 +478,12 @@ MemberEditorEntry.prototype.select = function() {
 /**
  * Zeigt alle Member an
  * 
- * @param onselect wird gerufen, wenn ein Member ausgewählt wurde
+ * @param onselect
+ *                wird gerufen, wenn ein Member ausgewählt wurde
  * 
  */
 var MemberSelector = function(onselect) {
-    
+
     this.onselect = onselect;
     var self = this;
     WorkSpaceFrame.call(this, "gui/member_view/member_selector.html", function() {
@@ -551,14 +555,14 @@ MemberSelector.prototype.fillTable = function(memberId) {
 MemberSelector.prototype.createOneEntry = function(xpath) {
 
     var self = this;
-    
+
     var result = document.createElement("div");
     result.className = "member-overview-title-row";
     result.appendChild(this.createImage(xpath));
-    result.appendChild(this.createLabel(xpath));    
+    result.appendChild(this.createLabel(xpath));
 
     result.addEventListener("click", function() {
-	
+
 	self.close();
 	var id = self.model.getValue(xpath + "/id");
 	self.onselect(id);
