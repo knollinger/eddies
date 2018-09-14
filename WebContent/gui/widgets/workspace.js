@@ -14,7 +14,7 @@ var WorkSpace = (function() {
 
 	evt.preventDefault();
 	evt.stopPropagation();
-    }, {passive: false});
+    });
 
     var menuIcon = document.getElementById("main-view-menu-icon");
     menuIcon.addEventListener("click", function() {
@@ -411,12 +411,6 @@ var MainMenu = (function() {
 		new LoginView();
 	    }));
 	}
-
-	// content.appendChild(document.createElement("hr"));
-	// content.appendChild(createMenuEntry("Dokumentation", function() {
-	// window.open("user_manual.pdf");
-	// }));
-
 	UIUtils.removeClass(content, "hidden");
 	content.focus();
     }

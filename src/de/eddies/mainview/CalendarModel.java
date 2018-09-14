@@ -26,6 +26,10 @@ public class CalendarModel implements IJAXBObject
     @XmlElement(name = "purifier-entry")
     List<PurifierTermin> purifierEntries = new ArrayList<>();
 
+    @XmlElementWrapper(name = "comments")
+    @XmlElement(name = "comment")
+    List<Comment> comments = new ArrayList<>();
+
     @XmlElementWrapper(name = "members")
     @XmlElement(name = "member")
     List<Member> members = new ArrayList<>();

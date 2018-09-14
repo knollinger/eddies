@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import de.eddies.database.ConnectionPool;
 import de.eddies.database.DBUtils;
 import de.eddies.member.MemberDBUtils;
+import de.eddies.service.EAction;
 import de.eddies.service.ErrorResponse;
 import de.eddies.service.IJAXBObject;
 import de.eddies.service.IXmlServiceHandler;
@@ -77,6 +78,7 @@ public class GetCalendarHandler implements IXmlServiceHandler
             CalendarModel rsp = new CalendarModel();
             rsp.keeperEntries = this.getKeeperTermins(req, conn);
             rsp.purifierEntries = this.getPurifierTermins(req, conn);
+            rsp.comments = this.getComments(req, conn);
             rsp.members = MemberDBUtils.getAllMembers(conn);
             result = rsp;
         }
@@ -163,6 +165,44 @@ public class GetCalendarHandler implements IXmlServiceHandler
         }
     }
 
+    /**
+     * @param req
+     * @param conn
+     * @return
+     * @throws SQLException 
+     */
+    private List<Comment> getComments(Request req, Connection conn) throws SQLException {
+        
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            stmt = conn.prepareStatement("select * from notes where date between ? and ? order by date");
+            stmt.setDate(1, req.from);
+            stmt.setDate(2, req.until);
+            rs = stmt.executeQuery();
+
+            List<Comment> result = new ArrayList<>();
+            while (rs.next())
+            {
+                Comment c = new Comment();
+                c.id = rs.getInt("id");
+                c.action = EAction.NONE;
+                c.isClosed = rs.getBoolean("closed");
+                c.date = rs.getDate("date");
+                c.text = rs.getString("text");
+                result.add(c);
+            }       
+            return result;
+        }
+        finally
+        {
+            DBUtils.closeQuitly(rs);
+            DBUtils.closeQuitly(stmt);
+        }
+    }
+
+    
     /**
      * Das Request-Objekt
      */

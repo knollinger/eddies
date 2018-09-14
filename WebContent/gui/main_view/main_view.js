@@ -270,15 +270,26 @@ MainViewCalendar.prototype.findLastDate = function() {
 MainViewCalendar.prototype.getState = function(date) {
 
     var result = MainViewCalendar.STATE_CLOSED;
-    if (this.openHoursModel.isOpen(date)) {
+    if (this.openHoursModel.mustBeOpen(date)) {
 
-	result = this.hasGaps(date) ? MainViewCalendar.STATE_OPEN_WITH_GAPS : MainViewCalendar.STATE_OPEN;
+	if(this.isClosedByComment(date)) {
+	    result = MainViewCalendar.STATE_CLOSED_BY_COMMENT;
+	}
+	else {
+	    if(this.hasGaps(date)) {
+		result = MainViewCalendar.STATE_OPEN_WITH_GAPS;
+	    }
+	    else {
+		result = MainViewCalendar.STATE_OPEN;
+	    }
+	}
     }
     return result;
 }
 MainViewCalendar.STATE_OPEN = 0;
 MainViewCalendar.STATE_OPEN_WITH_GAPS = 1;
 MainViewCalendar.STATE_CLOSED = 2;
+MainViewCalendar.STATE_CLOSED_BY_COMMENT = 3;
 
 /**
  * Prüft, ob für das angegebene Datum GAP's vorliegen. Also Zeitbereiche, welche
@@ -290,7 +301,7 @@ MainViewCalendar.STATE_CLOSED = 2;
  */
 MainViewCalendar.prototype.hasGaps = function(date) {
 
-    var result = this.openHoursModel.isOpen(date);
+    var result = this.openHoursModel.mustBeOpen(date);
     if (result) {
 
 	var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
@@ -300,6 +311,20 @@ MainViewCalendar.prototype.hasGaps = function(date) {
 	result = !from || from > this.openHoursModel.getFrom(date) || !until || until < this.openHoursModel.getUntil(date);
     }
     return result;
+}
+
+/**
+ * Prüft, ob für das angegebene Datum GAP's vorliegen. Also Zeitbereiche, welche
+ * durch die Theki-Planung noch nicht abgedeckt sind
+ * 
+ * @param date
+ *                dazu zu prüfende Datum
+ * @return true, wenn Gaps vorliegen, ansonsten false
+ */
+MainViewCalendar.prototype.isClosedByComment = function(date) {
+
+    var xpath = "//calendar-model/comments/comment[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and closed='true']";
+    return this.model.evaluateXPath(xpath).length != 0;
 }
 
 /**
@@ -472,6 +497,10 @@ MainViewCalendar.prototype.makeWeekStatus = function(date) {
 	break;
 
     case MainViewCalendar.STATE_CLOSED:
+	status.className += " calendar-weekday-closed";
+	break;
+	
+    case MainViewCalendar.STATE_CLOSED_BY_COMMENT:
 	status.className += " calendar-weekday-closed";
 	break;
     }
@@ -655,6 +684,10 @@ MainViewCalendar.prototype.makeMonthDayHeader = function(date) {
 
     case MainViewCalendar.STATE_CLOSED:
 	header.className += " calendar-monthly-day-closed";
+	
+    case MainViewCalendar.STATE_CLOSED_BY_COMMENT:
+	header.className += " calendar-monthly-day-closed";
+	break;
     }
 
     header.textContent = DateTimeUtils.formatDate(date, "{d}");
@@ -682,7 +715,6 @@ MainViewCalendar.prototype.makeMonthDayContent = function(date) {
     return content;
 }
 
-
 /*---------------------------------------------------------------------------*/
 /**
  * 
@@ -698,7 +730,7 @@ var MainViewDetails = function(model, day) {
 	self.enableSaveButton(false);
 	self.actionAddKeeper = self.createAddKeeperAction();
 	self.actionAddPurifier = self.createAddPurifierAction();
-	self.actionRemove = self.createRemoveAction();
+	self.actionRemovePerson = self.createRemovePersonAction();
 
 	self.loadMemberModel(function() {
 	    OpenHoursModelHelper.load(function(openingHours) {
@@ -804,7 +836,7 @@ MainViewDetails.EMPTY_PURIFIER = "<purifier-entry><id/><action>CREATE</action><d
 /**
  * 
  */
-MainViewDetails.prototype.createRemoveAction = function() {
+MainViewDetails.prototype.createRemovePersonAction = function() {
 
     var self = this;
     var btn = this.createToolButton("gui/images/person-remove.svg", "Löschen", function() {
@@ -830,10 +862,64 @@ MainViewDetails.prototype.createRemoveAction = function() {
 /**
  * 
  */
+MainViewDetails.prototype.createAddCommentAction = function() {
+
+    var self = this;
+    var btn = this.createToolButton("gui/images/note-add.svg", "Einen Kommentar hinzu fügen", function() {
+
+    });
+    return btn;
+}
+
+/**
+ * 
+ */
+MainViewDetails.prototype.createRemoveCommentAction = function() {
+
+    var self = this;
+    var btn = this.createToolButton("gui/images/note-remove.svg", "Löschen", function() {
+
+	var title = MessageCatalog.getMessage("REMOVE_COMMENT_TITLE");
+	var messg = MessageCatalog.getMessage("REMOVE_COMMENT_QUERY");
+	new MessageBox(MessageBox.QUERY, title, messg, function() {
+	    var action = self.model.getValue(self.currCommentXPath + "/action");
+	    if (action == "CREATE") {
+		self.model.removeElement(self.currCommentXPath);
+	    } else {
+		self.model.setValue(self.currCommentXPath + "/action", "REMOVE");
+	    }
+	    UIUtils.removeElement(self.currComment.container);
+	    self.currComment = self.currCommentXPath = null;
+	    btn.hide();
+	});
+    });
+    btn.hide();
+    return btn;
+}
+
+/**
+ * 
+ */
 MainViewDetails.prototype.update = function() {
 
+    UIUtils.clearChilds("details-members-body");
     this.fillAllKeepers();
     this.fillAllPurifiers();
+
+    if (SessionManager.isAdmin()) {
+	UIUtils.removeClass("details-comment-header", "hidden");
+	UIUtils.removeClass("details-comment-body", "hidden");
+
+	var toXML = function(attribute) {
+	    return attribute ? "true" : "false";
+	}
+	var fromXML = function(text) {
+	    return text == "true";
+	}
+	var xpath = "//calendar-model/comments/comment[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "']";
+	this.model.createAttributeBinding("details-is-closed", "checked", xpath + "/closed", null, toXML, fromXML);
+	this.model.createValueBinding("details-comment", xpath + "/text");
+    }
 }
 
 /**
@@ -841,7 +927,6 @@ MainViewDetails.prototype.update = function() {
  */
 MainViewDetails.prototype.fillAllKeepers = function() {
 
-    UIUtils.clearChilds("mainview-details-keepers");
     var xpath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
     var allEntries = this.model.evaluateXPath(xpath);
     for (var i = 0; i < allEntries.length; i++) {
@@ -860,11 +945,11 @@ MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
     radio.type = "radio";
     radio.className = "hidden";
     radio.name = "mainview_details_entry";
-    UIUtils.getElement("mainview-details-keepers").appendChild(radio);
+    UIUtils.getElement("details-members-body").appendChild(radio);
 
     var entry = new MainViewDetailsKeeperEntry(this.model, entryXPath, this.memberModel);
     var entryUI = entry.container;
-    UIUtils.getElement("mainview-details-keepers").appendChild(entryUI);
+    UIUtils.getElement("details-members-body").appendChild(entryUI);
 
     var self = this;
     entryUI.addEventListener("click", function() {
@@ -876,10 +961,10 @@ MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
 	if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
 	    self.currEntry = entry;
 	    self.currEntryXPath = entryXPath;
-	    self.actionRemove.show();
+	    self.actionRemovePerson.show();
 	} else {
 	    self.currEntry = self.currEntryXPath = null;
-	    self.actionRemove.hide();
+	    self.actionRemovePerson.hide();
 	}
 
 	self.model.addChangeListener(entryXPath, function() {
@@ -898,7 +983,6 @@ MainViewDetails.prototype.fillOneKeeper = function(entryXPath) {
  */
 MainViewDetails.prototype.fillAllPurifiers = function() {
 
-    UIUtils.clearChilds("mainview-details-purifiers");
     var xpath = "//calendar-model/purifier-entries/purifier-entry[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
     var allEntries = this.model.evaluateXPath(xpath);
     for (var i = 0; i < allEntries.length; i++) {
@@ -917,11 +1001,11 @@ MainViewDetails.prototype.fillOnePurifier = function(entryXPath) {
     radio.type = "radio";
     radio.className = "hidden";
     radio.name = "mainview_details_entry";
-    UIUtils.getElement("mainview-details-purifiers").appendChild(radio);
+    UIUtils.getElement("details-members-body").appendChild(radio);
 
     var entry = new MainViewDetailsPurifierEntry(this.model, entryXPath, this.memberModel);
     var entryUI = entry.container;
-    UIUtils.getElement("mainview-details-purifiers").appendChild(entryUI);
+    UIUtils.getElement("details-members-body").appendChild(entryUI);
 
     var self = this;
     entryUI.addEventListener("click", function() {
@@ -933,10 +1017,10 @@ MainViewDetails.prototype.fillOnePurifier = function(entryXPath) {
 	if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
 	    self.currEntry = entry;
 	    self.currEntryXPath = entryXPath;
-	    self.actionRemove.show();
+	    self.actionRemovePerson.show();
 	} else {
 	    self.currEntry = self.currEntryXPath = null;
-	    self.actionRemove.hide();
+	    self.actionRemovePerson.hide();
 	}
     });
     return entry;
@@ -973,9 +1057,9 @@ MainViewDetails.prototype.onSave = function() {
 }
 
 /**
- * entferne alle als gelöscht markierten elemente (keeper/purifier) und setzen
- * bei allen mit CREATE oder MODIFY markierten Elementen die Aktion zurück auf
- * NONE.
+ * entferne alle als gelöscht markierten elemente (keeper/purifier/Kommentare)
+ * und setze bei allen mit CREATE oder MODIFY markierten Elementen die Aktion
+ * zurück auf NONE.
  * 
  * Im ANschluss wird die WorkingCopy committet
  */
@@ -991,6 +1075,12 @@ MainViewDetails.prototype.commitModel = function() {
 	entry.parentNode.removeChild(entry);
     });
     this.model.forEach("//calendar-model/purifier-entries/purifier-entry[action != 'NONE']", function(entry) {
+	entry.getElementsByTagName("action")[0].textContent = "NONE";
+    });
+    this.model.forEach("//calendar-model/comments/comment[action = 'REMOVE']", function(entry) {
+	entry.parentNode.removeChild(entry);
+    });
+    this.model.forEach("//calendar-model/comments/comment[action != 'NONE']", function(entry) {
 	entry.getElementsByTagName("action")[0].textContent = "NONE";
     });
     this.model.commit();
@@ -1052,31 +1142,33 @@ MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
     var result = document.createElement("div");
     result.className = "details-timesection";
 
-    // zeiten
-    var from = document.createElement("input");
-    from.className = "mandatory";
-    from.setAttribute("type", "time");
-    from.dataset.type = "time";
-    from.title = from.placeholder = "von";
-    this.model.createValueBinding(from, this.entryXPath + "/begin");
-    result.appendChild(from);
+    if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
 
-    var fill = document.createElement("span");
-    fill.textContent = " - ";
-    result.appendChild(fill);
+	// zeiten
+	var from = document.createElement("input");
+	from.className = "mandatory";
+	from.setAttribute("type", "time");
+	from.dataset.type = "time";
+	from.title = from.placeholder = "von";
+	this.model.createValueBinding(from, this.entryXPath + "/begin");
+	result.appendChild(from);
 
-    var end = document.createElement("input");
-    end.className = "mandatory";
-    end.setAttribute("type", "time");
-    end.dataset.type = "time";
-    end.title = end.placeholder = "bis";
-    this.model.createValueBinding(end, this.entryXPath + "/end");
-    result.appendChild(end);
+	var fill = document.createElement("span");
+	fill.textContent = " - ";
+	result.appendChild(fill);
 
-    if (!SessionManager.isAdmin() && !SessionManager.isMee(memberId)) {
-	from.disabled = end.disabled = true;
+	var end = document.createElement("input");
+	end.className = "mandatory";
+	end.setAttribute("type", "time");
+	end.dataset.type = "time";
+	end.title = end.placeholder = "bis";
+	this.model.createValueBinding(end, this.entryXPath + "/end");
+	result.appendChild(end);
+    } else {
+	result.textContent = this.model.getValue(this.entryXPath + "/begin");
+	result.textContent += " - ";
+	result.textContent += this.model.getValue(this.entryXPath + "/end");
     }
-
     return result;
 }
 
@@ -1108,6 +1200,7 @@ MainViewDetailsPurifierEntry.prototype.makeAvatar = function(memberId) {
     var img = document.createElement("img");
     img.className = "avatar";
     img.src = "getDocument/memberImage/?id=" + memberId;
+    img.src = "gui/images/heinzelmaennchen.jpg";
     return img;
 }
 

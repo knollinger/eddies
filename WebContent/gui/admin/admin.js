@@ -152,7 +152,7 @@ OpenHoursModel.prototype.getUntil = function(date) {
 /**
  * liefere den Zeit des schliessens
  */
-OpenHoursModel.prototype.isOpen = function(date) {
+OpenHoursModel.prototype.mustBeOpen = function(date) {
 
     return this.getFrom(date) && this.getUntil(date);
 }
