@@ -27,20 +27,20 @@
 </head>
 
 <body onload="javascript:init();">
-	<div class="workspace">
-		<div class="workspace-title">
+	<div class="workspace flex-col">
+		<div class="workspace-title flex-0 flex-row">
 			<div>
-				<img id="main-view-menu-icon" class="main-menu-icon clickable"
+				<img id="main-view-menu-icon" class="main-menu-icon flex-0 clickable"
 					src="gui/images/navigation-menu.svg">
 				<div id="main-menu-content" class="main-menu-content hidden"
 					tabIndex="0"></div>
 			</div>
-			<span id="workspace-title-text"></span> 
+			<span id="workspace-title-text" class="flex-1"></span> 
 		</div>
-		<div class="workspace-header">
+		<div class="workspace-header flex-0 flex-col">
 			<span>Eddie Crashpaddy</span>
 		</div>
-		<div id="workspace-body"></div>
+		<div id="workspace-body" class="flex-1 flex-col"></div>
 		<div id="busy-indicator" class="busy-indicator">
 			<img src="gui//images/spin.gif" />
 		</div>

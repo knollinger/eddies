@@ -74,10 +74,10 @@ var WorkSpaceFrame = function(url, onload) {
 	    if (req.status == 200) {
 
 		self.frame = document.createElement("div");
-		self.frame.className = "workspace-frame";
+		self.frame.className = "workspace-frame flex-0 flex-col";
 
 		self.body = document.createElement("div");
-		self.body.className = "workspace-frame-body";
+		self.body.className = "workspace-frame-body flex-1 flex-col";
 		self.body.innerHTML = req.responseText;
 		self.frame.appendChild(self.body);
 
@@ -106,7 +106,7 @@ var WorkSpaceFrame = function(url, onload) {
 WorkSpaceFrame.prototype.createActionBar = function() {
 
     var header = document.createElement("div");
-    header.className = "workspace-frame-actionbar";
+    header.className = "workspace-frame-actionbar flex-0 flex-row";
 
     var self = this;
     if (this.hasCloseButton()) {
@@ -165,7 +165,7 @@ WorkSpaceFrame.prototype.enableSaveButton = function(val) {
 WorkSpaceFrame.prototype.createToolBox = function() {
 
     var result = document.createElement("div");
-    result.className = "workspace-frame-toolbox";
+    result.className = "workspace-frame-toolbox flex-1 flex-row";
     return result;
 }
 
@@ -272,7 +272,7 @@ WorkSpaceFrame.prototype.activate = function() {
 var WorkSpaceActionButton = function(imgUrl, title, onclick) {
 
     this.ui = document.createElement("div");
-    this.ui.className = "workspace-frame-action";
+    this.ui.className = "workspace-frame-action flex-0";
     this.ui.title = title;
 
     var img = document.createElement("img");

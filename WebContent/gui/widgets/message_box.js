@@ -5,11 +5,11 @@ var MessageBox = function(type, title, message, onOk, onCancel) {
     this.glass.className = "mbox-glass";
 
     var frame = document.createElement("div");
-    frame.className = "mbox-frame";
+    frame.className = "mbox-frame flex-col";
     this.glass.appendChild(frame);
 
     var header = document.createElement("div");
-    header.className = "mbox-title";
+    header.className = "mbox-title flex-0";
     header.innerHTML = title;
 
     frame.appendChild(header);
@@ -38,7 +38,7 @@ MessageBox.prototype.close = function() {
 MessageBox.prototype.createContent = function(type, message) {
 
     var content = document.createElement("div");
-    content.className = "mbox-content";
+    content.className = "mbox-content flex-1";
 
     var icon = document.createElement("img");
     icon.className = "mbox-icon";
@@ -55,7 +55,7 @@ MessageBox.prototype.createContent = function(type, message) {
 MessageBox.prototype.createButtonArea = function(type, onOk, onCancel) {
 
     var footer = document.createElement("div");
-    footer.className = "mbox-footer";
+    footer.className = "mbox-footer flex-0";
 
     switch (type) {
     case MessageBox.INFO:

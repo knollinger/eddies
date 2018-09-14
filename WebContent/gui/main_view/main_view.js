@@ -194,10 +194,10 @@ MainViewCalendar.prototype.update = function() {
     var self = this;
     this.loadModel(startDate, endDate, function() {
 
+	self.fill(startDate, endDate);
 	self.model.addChangeListener("//calendar-model", function() {
 	    self.fill(startDate, endDate);
 	});
-	self.fill(startDate, endDate);
     });
 
 }
@@ -272,14 +272,12 @@ MainViewCalendar.prototype.getState = function(date) {
     var result = MainViewCalendar.STATE_CLOSED;
     if (this.openHoursModel.mustBeOpen(date)) {
 
-	if(this.isClosedByComment(date)) {
+	if (this.isClosedByComment(date)) {
 	    result = MainViewCalendar.STATE_CLOSED_BY_COMMENT;
-	}
-	else {
-	    if(this.hasGaps(date)) {
+	} else {
+	    if (this.hasGaps(date)) {
 		result = MainViewCalendar.STATE_OPEN_WITH_GAPS;
-	    }
-	    else {
+	    } else {
 		result = MainViewCalendar.STATE_OPEN;
 	    }
 	}
@@ -442,21 +440,13 @@ MainViewCalendar.prototype.fillWeek = function(startDate, endDate) {
 MainViewCalendar.prototype.makeWeekDay = function(date) {
 
     var day = document.createElement("div");
-    day.className = "calendar-weekday";
+    day.className = "calendar-weekday flex-1 flex-row";
 
-    day.appendChild(this.makeWeekStatus(date));
-    var content = this.makeWeekContent(date);
+    var state = this.getState(date);
+    day.appendChild(this.makeWeekStatus(state));
+
+    var content = this.makeWeekContent(date, state);
     day.appendChild(content);
-
-    var row = this.makeWeekContentRow();
-    content.appendChild(row);
-    row.appendChild(this.makeWeekTitleSection(date));
-
-    var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
-    row.appendChild(this.makeWeekTimeSection(baseXPath));
-
-    row = this.makeWeekContentRow();
-    content.appendChild(row);
 
     var self = this;
     if (SessionManager.hasSession()) {
@@ -473,8 +463,6 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
 	if (self.showMyTermine && !self.isMyWorkingDay(date)) {
 	    content.className += " disabled";
 	}
-
-	row.appendChild(this.makeWeekNameSection(baseXPath));
     }
     return day;
 }
@@ -482,12 +470,12 @@ MainViewCalendar.prototype.makeWeekDay = function(date) {
 /**
  * 
  */
-MainViewCalendar.prototype.makeWeekStatus = function(date) {
+MainViewCalendar.prototype.makeWeekStatus = function(state) {
 
     var status = document.createElement("div");
-    status.className = "calendar-weekday-status";
+    status.className = "calendar-weekday-status flex-0 flex-col";
 
-    switch (this.getState(date)) {
+    switch (state) {
     case MainViewCalendar.STATE_OPEN:
 	status.className += " calendar-weekday-open";
 	break;
@@ -499,7 +487,7 @@ MainViewCalendar.prototype.makeWeekStatus = function(date) {
     case MainViewCalendar.STATE_CLOSED:
 	status.className += " calendar-weekday-closed";
 	break;
-	
+
     case MainViewCalendar.STATE_CLOSED_BY_COMMENT:
 	status.className += " calendar-weekday-closed";
 	break;
@@ -510,10 +498,38 @@ MainViewCalendar.prototype.makeWeekStatus = function(date) {
 /**
  * 
  */
-MainViewCalendar.prototype.makeWeekContent = function(date) {
+MainViewCalendar.prototype.makeWeekContent = function(date, state) {
 
     var content = document.createElement("div");
-    content.className = "calendar-weekday-content";
+    content.className = "calendar-weekday-content flex-1 flex-col";
+
+    var row1 = row = document.createElement("div");    
+    row1.className = "calendar-weekday-row flex-1 flex-row";
+    row1.appendChild(this.makeWeekTitleSection(date));
+    content.appendChild(row1);
+
+    var row2 = document.createElement("div");
+    row2.className = "flex-1 calendar-weekday-comment";
+    content.appendChild(row2);
+
+    switch (state) {
+    case MainViewCalendar.STATE_OPEN:
+    case MainViewCalendar.STATE_OPEN_WITH_GAPS:
+	var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
+	row1.appendChild(this.makeWeekTimeSection(baseXPath));
+	if (SessionManager.hasSession()) {
+	    row2.textContent = this.makeWeekNameSection(baseXPath);
+	}
+	break;
+
+    case MainViewCalendar.STATE_CLOSED:
+	row2.textContent = this.makeWeekHolidaySection(date);
+	break;
+
+    case MainViewCalendar.STATE_CLOSED_BY_COMMENT:
+	row2.textContent = this.makeWeekCommentSection(date);
+	break;
+    }
     return content;
 }
 
@@ -523,7 +539,7 @@ MainViewCalendar.prototype.makeWeekContent = function(date) {
 MainViewCalendar.prototype.makeWeekContentRow = function() {
 
     var row = document.createElement("div");
-    row.className = "calendar-weekday-row";
+    row.className = "calendar-weekday-row flex-1 flex-row";
     return row;
 }
 
@@ -533,7 +549,7 @@ MainViewCalendar.prototype.makeWeekContentRow = function() {
 MainViewCalendar.prototype.makeWeekTitleSection = function(date) {
 
     var title = document.createElement("div");
-    title.className = "calendar-weekday-date";
+    title.className = "calendar-weekday-date flex-1";
     if (DateTimeUtils.isToday(date)) {
 	title.className += " calendar-today";
     }
@@ -544,38 +560,10 @@ MainViewCalendar.prototype.makeWeekTitleSection = function(date) {
 /**
  * 
  */
-MainViewCalendar.prototype.makeWeekNameSection = function(xpath) {
-
-    var result = document.createElement("div");
-    result.className = "calendar-weekday-keepers";
-    var content = "";
-
-    if (SessionManager.hasSession()) {
-
-	var memberIds = this.model.evaluateXPath(xpath + "/keeper");
-	for (var i = 0; i < memberIds.length; i++) {
-	    if (content != "") {
-		content += ", ";
-	    }
-
-	    var memberId = memberIds[i].textContent;
-	    var memberXPath = "//calendar-model/members/member[id='" + memberId + "']";
-	    content += this.model.getValue(memberXPath + "/vname").charAt(0).toUpperCase();
-	    content += ".";
-	    content += this.model.getValue(memberXPath + "/zname");
-	}
-	result.textContent = content;
-    }
-    return result;
-}
-
-/**
- * 
- */
 MainViewCalendar.prototype.makeWeekTimeSection = function(xpath) {
 
     var time = document.createElement("div");
-    time.className = "calendar-weekday-time";
+    time.className = "calendar-weekday-time flex-0";
 
     var from = this.findFrom(xpath);
     var until = this.findUntil(xpath);
@@ -592,6 +580,47 @@ MainViewCalendar.prototype.makeWeekTimeSection = function(xpath) {
 /**
  * 
  */
+MainViewCalendar.prototype.makeWeekNameSection = function(xpath) {
+
+    var content = "";
+
+    if (SessionManager.hasSession()) {
+
+	var memberIds = this.model.evaluateXPath(xpath + "/keeper");
+	for (var i = 0; i < memberIds.length; i++) {
+	    if (content != "") {
+		content += ", ";
+	    }
+
+	    var memberId = memberIds[i].textContent;
+	    var memberXPath = "//calendar-model/members/member[id='" + memberId + "']";
+	    content += this.model.getValue(memberXPath + "/vname").charAt(0).toUpperCase();
+	    content += ".";
+	    content += this.model.getValue(memberXPath + "/zname");
+	}
+    }
+    return content;
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.makeWeekHolidaySection = function(date) {
+
+    return "Ruhetag";
+}
+
+/**
+ * 
+ */
+MainViewCalendar.prototype.makeWeekCommentSection = function(date) {
+
+    var xpath = "//calendar-model/comments/comment[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and closed='true']/text";
+    return this.model.getValue(xpath);
+}
+/**
+ * 
+ */
 MainViewCalendar.prototype.fillMonth = function(startDate, endDate) {
 
     var currentDate = new Date(startDate);
@@ -602,7 +631,7 @@ MainViewCalendar.prototype.fillMonth = function(startDate, endDate) {
 
 	if (currentDate.getDay() == 1 || row == null) {
 	    row = document.createElement("div");
-	    row.className = "calendar-monthly-row";
+	    row.className = "calendar-monthly-row flex-1 flex-row";
 	    calBody.appendChild(row);
 	}
 
@@ -620,12 +649,12 @@ MainViewCalendar.prototype.fillMonth = function(startDate, endDate) {
 MainViewCalendar.prototype.makeMonthRuler = function() {
 
     var row = document.createElement("div");
-    row.className = "calendar-monthly-header";
+    row.className = "calendar-monthly-header flex-0 flex-row";
 
     var days = [ "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So" ];
     for (var i = 0; i < days.length; i++) {
 	var cell = document.createElement("div");
-	cell.className = "calendar-monthly-header-cell";
+	cell.className = "calendar-monthly-header-cell flex-1";
 	cell.textContent = days[i];
 	row.appendChild(cell);
     }
@@ -638,7 +667,7 @@ MainViewCalendar.prototype.makeMonthRuler = function() {
 MainViewCalendar.prototype.makeMonthDay = function(date) {
 
     var cell = document.createElement("div");
-    cell.className = "calendar-monthly-day";
+    cell.className = "calendar-monthly-day flex-1 flex-col";
 
     cell.appendChild(this.makeMonthDayHeader(date));
     cell.appendChild(this.makeMonthDayContent(date));
@@ -668,7 +697,7 @@ MainViewCalendar.prototype.makeMonthDay = function(date) {
 MainViewCalendar.prototype.makeMonthDayHeader = function(date) {
 
     var header = document.createElement("div");
-    header.className = "calenday-monthly-day-header";
+    header.className = "calenday-monthly-day-header flex-0";
     if (DateTimeUtils.isToday(date)) {
 	header.className += " calendar-today";
     }
@@ -684,7 +713,7 @@ MainViewCalendar.prototype.makeMonthDayHeader = function(date) {
 
     case MainViewCalendar.STATE_CLOSED:
 	header.className += " calendar-monthly-day-closed";
-	
+
     case MainViewCalendar.STATE_CLOSED_BY_COMMENT:
 	header.className += " calendar-monthly-day-closed";
 	break;
@@ -700,7 +729,7 @@ MainViewCalendar.prototype.makeMonthDayHeader = function(date) {
 MainViewCalendar.prototype.makeMonthDayContent = function(date) {
 
     var content = document.createElement("div");
-    content.className = "calendar-monthly-day-time";
+    content.className = "calendar-monthly-day-time flex-1";
 
     var baseXPath = "//calendar-model/keeper-entries/keeper-entry[date='" + DateTimeUtils.formatDate(date, "{dd}.{mm}.{yyyy}") + "' and action != 'REMOVE']";
     var entries = this.model.evaluateXPath(baseXPath);
@@ -735,11 +764,11 @@ var MainViewDetails = function(model, day) {
 	self.loadMemberModel(function() {
 	    OpenHoursModelHelper.load(function(openingHours) {
 		self.openingHoursModel = openingHours;
+		self.update();
 		var observingXPath = "//calendar-model";
 		self.model.addChangeListener(observingXPath, function() {
 		    self.enableSaveButton(true);
 		});
-		self.update();
 	    })
 	});
     });
@@ -916,11 +945,39 @@ MainViewDetails.prototype.update = function() {
 	var fromXML = function(text) {
 	    return text == "true";
 	}
-	var xpath = "//calendar-model/comments/comment[date='" + DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}") + "']";
+	var xpath = this.getCommentXPath();
 	this.model.createAttributeBinding("details-is-closed", "checked", xpath + "/closed", null, toXML, fromXML);
 	this.model.createValueBinding("details-comment", xpath + "/text");
+
+	var self = this;
+	this.model.addChangeListener(xpath, function() {
+	    if (self.model.getValue(xpath + "/action") == "NONE") {
+		self.model.setValue(xpath + "/action", "MODIFY");
+	    }
+	});
     }
 }
+
+/**
+ * liefert den XPath zur Comment-Node des Tages. sollte eine solche nicht
+ * existieren, so wird sie angelegt.
+ */
+MainViewDetails.prototype.getCommentXPath = function() {
+
+    var result = null;
+    var fmtDate = DateTimeUtils.formatDate(this.day, "{dd}.{mm}.{yyyy}");
+    var xpath = "//calendar-model/comments/comment[date='" + fmtDate + "']";
+    if (this.model.evaluateXPath(xpath) != 0) {
+	result = xpath;
+    } else {
+
+	var doc = new Model(XmlUtils.parse(MainViewDetails.EMPTY_COMMENT_NODE));
+	doc.setValue("//comment/date", fmtDate);
+	result = this.model.addElement("//calendar-model/comments", doc.getDocument().documentElement);
+    }
+    return result;
+}
+MainViewDetails.EMPTY_COMMENT_NODE = "<comment><id/><action>CREATE</action><closed>false</closed><date/><text/></comment>";
 
 /**
  * 
@@ -1042,7 +1099,7 @@ MainViewDetails.prototype.onSave = function() {
 	case "error-response":
 	    var title = MessageCatalog.getMessage("SAVE_CALENDER_ERROR_TITLE");
 	    var messg = MessageCatalog.getMessage("SAVE_CALENDER_ERROR", rsp.getElementsByTagName("msg")[0].textContent);
-	    new MessageBox(MessageBox.ERROR, title, message);
+	    new MessageBox(MessageBox.ERROR, title, messg);
 	    break;
 
 	}
@@ -1050,7 +1107,7 @@ MainViewDetails.prototype.onSave = function() {
     caller.onError = function(req, status) {
 	var title = MessageCatalog.getMessage("SAVE_CALENDER_ERROR_TITLE");
 	var messg = MessageCatalog.getMessage("SAVE_CALENDER_TECH_ERROR", status);
-	new MessageBox(MessageBox.ERROR, title, message);
+	new MessageBox(MessageBox.ERROR, title, messg);
     }
     caller.invokeService(this.model.getDocument());
 
@@ -1097,7 +1154,7 @@ var MainViewDetailsKeeperEntry = function(model, entryXPath, memberModel) {
     this.memberModel = memberModel;
 
     this.container = document.createElement("div");
-    this.container.className = "details-entry-cnr";
+    this.container.className = "details-entry-cnr flex-row";
 
     var memberId = this.model.getValue(this.entryXPath + "/keeper");
     this.container.appendChild(this.makeAvatar(memberId));
@@ -1114,7 +1171,7 @@ var MainViewDetailsKeeperEntry = function(model, entryXPath, memberModel) {
 MainViewDetailsKeeperEntry.prototype.makeAvatar = function(memberId) {
 
     var img = document.createElement("img");
-    img.className = "avatar";
+    img.className = "avatar flex-0";
     img.src = "getDocument/memberImage/?id=" + memberId;
     return img;
 }
@@ -1125,7 +1182,7 @@ MainViewDetailsKeeperEntry.prototype.makeAvatar = function(memberId) {
 MainViewDetailsKeeperEntry.prototype.makeNameSection = function(memberId) {
 
     var result = document.createElement("div");
-    result.className = "details-namesection";
+    result.className = "details-namesection flex-1";
 
     var xpath = "//members-model/members/member[id='" + memberId + "']";
     var vname = this.memberModel.getValue(xpath + "/vname");
@@ -1140,7 +1197,7 @@ MainViewDetailsKeeperEntry.prototype.makeNameSection = function(memberId) {
 MainViewDetailsKeeperEntry.prototype.makeTimeSection = function(memberId) {
 
     var result = document.createElement("div");
-    result.className = "details-timesection";
+    result.className = "details-timesection flex-0";
 
     if (SessionManager.isAdmin() || SessionManager.isMee(memberId)) {
 
@@ -1183,7 +1240,7 @@ var MainViewDetailsPurifierEntry = function(model, entryXPath, memberModel) {
     this.memberModel = memberModel;
 
     this.container = document.createElement("div");
-    this.container.className = "details-entry-cnr";
+    this.container.className = "details-entry-cnr flex-row";
 
     var memberId = this.model.getValue(this.entryXPath + "/purifier");
     this.container.appendChild(this.makeAvatar(memberId));
@@ -1198,7 +1255,7 @@ var MainViewDetailsPurifierEntry = function(model, entryXPath, memberModel) {
 MainViewDetailsPurifierEntry.prototype.makeAvatar = function(memberId) {
 
     var img = document.createElement("img");
-    img.className = "avatar";
+    img.className = "avatar flex-0";
     img.src = "getDocument/memberImage/?id=" + memberId;
     img.src = "gui/images/heinzelmaennchen.jpg";
     return img;
@@ -1210,7 +1267,7 @@ MainViewDetailsPurifierEntry.prototype.makeAvatar = function(memberId) {
 MainViewDetailsPurifierEntry.prototype.makeNameSection = function(memberId) {
 
     var result = document.createElement("div");
-    result.className = "details-namesection";
+    result.className = "details-namesection flex-1";
 
     var xpath = "//members-model/members/member[id='" + memberId + "']";
     var vname = this.memberModel.getValue(xpath + "/vname");

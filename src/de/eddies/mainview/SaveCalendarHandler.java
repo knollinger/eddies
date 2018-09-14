@@ -70,6 +70,7 @@ public class SaveCalendarHandler implements IXmlServiceHandler
 
             this.handleKeeperChanges(model.keeperEntries, conn);
             this.handlePurifierChanges(model.purifierEntries, conn);
+            this.handleCommentChanges(model.comments, conn);
 
             conn.commit();
             result = new Response();
@@ -272,6 +273,78 @@ public class SaveCalendarHandler implements IXmlServiceHandler
         {
             stmt = conn.prepareStatement("delete from purifier_termine where id=?");
             stmt.setInt(1, entry.id);
+            stmt.executeUpdate();
+        }
+        finally
+        {
+            DBUtils.closeQuitly(stmt);
+        }
+    }
+
+    /**
+     * @param comments
+     * @param conn
+     * @throws SQLException 
+     */
+    private void handleCommentChanges(List<Comment> comments, Connection conn) throws SQLException
+    {
+        for (Comment comment : comments)
+        {
+            switch (comment.action)
+            {
+                case CREATE :
+                    this.createComment(comment, conn);
+                    break;
+
+                case MODIFY :
+                    this.updateComment(comment, conn);
+                    break;
+
+                default :
+                    break;
+            }
+        }
+
+    }
+
+
+    /**
+     * @param comment
+     * @param conn
+     * @throws SQLException 
+     */
+    private void createComment(Comment comment, Connection conn) throws SQLException
+    {
+        PreparedStatement stmt = null;
+        try
+        {
+            stmt = conn.prepareStatement("insert into notes set closed=?, date=?, text=?");
+            stmt.setString(1, Boolean.toString(comment.isClosed));
+            stmt.setDate(2, comment.date);
+            stmt.setString(3, comment.text);
+            stmt.executeUpdate();
+        }
+        finally
+        {
+            DBUtils.closeQuitly(stmt);
+        }
+    }
+
+    /**
+     * @param comment
+     * @param conn
+     * @throws SQLException 
+     */
+    private void updateComment(Comment comment, Connection conn) throws SQLException
+    {
+        PreparedStatement stmt = null;
+        try
+        {
+            stmt = conn.prepareStatement("update notes set closed=?, date=?, text=? where id=?");
+            stmt.setString(1, Boolean.toString(comment.isClosed));
+            stmt.setDate(2, comment.date);
+            stmt.setString(3, comment.text);
+            stmt.setInt(4, comment.id);
             stmt.executeUpdate();
         }
         finally

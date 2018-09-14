@@ -295,7 +295,7 @@ MemberEditorEntry.prototype.createImage = function() {
 
     var self = this;
     var img = document.createElement("img");
-    img.className = "avatar";
+    img.className = "avatar flex-0";
     img.title = "Hier klicken um das Bild zu ändern";
     img.src = "getDocument/memberImage?id=" + this.model.getValue(this.memberXPath + "/id");
     if (this.isEditable) {
@@ -316,6 +316,7 @@ MemberEditorEntry.prototype.createImage = function() {
 MemberEditorEntry.prototype.createLabel = function() {
 
     var result = document.createElement("span");
+    result.className = "flex-1";
     var self = this;
     var fromXML = function(val) {
 	var vname = self.model.getValue(self.memberXPath + "/vname");
@@ -576,7 +577,7 @@ MemberSelector.prototype.createOneEntry = function(xpath) {
 MemberSelector.prototype.createImage = function(xpath) {
 
     var img = document.createElement("img");
-    img.className = "avatar clickable";
+    img.className = "avatar flex-0 clickable";
     img.src = "getDocument/memberImage?id=" + this.model.getValue(xpath + "/id");
     return img;
 }
