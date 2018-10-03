@@ -31,17 +31,22 @@ public class GapFinder
     {
         Map<String, List<Interval>> plannedIntervals = GapDbUtils.getPlannedIntervals(startDate, endDate, conn);
         Map<Integer, Interval> mandatoryIntervals = GapDbUtils.getMandatoryIntervals(conn);
+        Map<String, String> closedDate = GapDbUtils.getClosedDays(startDate, endDate, conn);
 
         Map<Date, List<Interval>> allGaps = new HashMap<>();
         while (!startDate.after(endDate))
         {
-            Interval mandatory = mandatoryIntervals.get(GapFinder.getDayOfWeek(startDate));
-            if (mandatory != null)
+            if (!closedDate.containsKey(startDate.toString()))
             {
-                List<Interval> gapsPerDay = GapFinder.findGaps(plannedIntervals.get(startDate.toString()), mandatory);
-                if (!gapsPerDay.isEmpty())
+                Interval mandatory = mandatoryIntervals.get(GapFinder.getDayOfWeek(startDate));
+                if (mandatory != null)
                 {
-                    allGaps.put(startDate, gapsPerDay);
+                    List<Interval> gapsPerDay = GapFinder.findGaps(plannedIntervals.get(startDate.toString()),
+                        mandatory);
+                    if (!gapsPerDay.isEmpty())
+                    {
+                        allGaps.put(startDate, gapsPerDay);
+                    }
                 }
             }
             Calendar c = Calendar.getInstance();
@@ -52,7 +57,9 @@ public class GapFinder
         return allGaps;
     }
 
+  
 
+ 
     /**
      * Finds gaps on the time line between a list of existing {@link Interval}
      * and a search {@link Interval}
@@ -174,6 +181,9 @@ public class GapFinder
         c.setTime(date);
         c.setFirstDayOfWeek(Calendar.SUNDAY);
         int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+
+        System.out.println(date + ": dayOfWeek: " + dayOfWeek);
+
         return dayOfWeek - 1;
 
     }

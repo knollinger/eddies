@@ -40,7 +40,6 @@ public class CalendarGapScanner implements Runnable
         }
         catch (Exception e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         finally
