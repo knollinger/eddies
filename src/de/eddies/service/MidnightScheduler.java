@@ -39,7 +39,6 @@ class MidnightScheduler
         if (this.executor != null)
         {
             Long midnight = LocalDateTime.now().until(LocalDate.now().plusDays(1).atStartOfDay(), ChronoUnit.MINUTES);
-            System.out.println("the task will startup in " + midnight + " minutes");
             this.executor.scheduleAtFixedRate(r, midnight, 1440, TimeUnit.MINUTES);
         }
     }

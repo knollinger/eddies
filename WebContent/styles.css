@@ -656,7 +656,6 @@ label {
 .workspace-frame:last-child {
 	height: 100%;
 	visibility: visible;
-	transition: height 0.25s;
 }
 
 .workspace-frame-body {
@@ -703,10 +702,6 @@ label {
 
 .workspace-frame-action:active>img {
 	transform: translate(1px, 1px);
-}
-
-.workspace-frame-action:hover>img {
-	transform: scale(1.2, 1.2);
 }
 
 .workspace-frame-toolbox {

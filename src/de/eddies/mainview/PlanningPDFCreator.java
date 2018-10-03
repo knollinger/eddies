@@ -51,7 +51,6 @@ public class PlanningPDFCreator
             DocBuilder db = new DocBuilder(in);
 
             Map<Date, List<Interval>> allGaps = GapFinder.findAllGaps(from, until, conn);
-
             PlanningPDFCreator.makeHeader(db, from, until);
             PlanningPDFCreator.makeRows(db, from, until, allGaps, conn);
 
@@ -132,7 +131,7 @@ public class PlanningPDFCreator
         ResultSet rs = null;
 
         StringBuilder keepers = new StringBuilder();
-        
+
         try
         {
             stmt = conn.prepareStatement(
@@ -141,10 +140,7 @@ public class PlanningPDFCreator
             rs = stmt.executeQuery();
             if (!rs.next())
             {
-                if (gaps == null || gaps.isEmpty())
-                {
-                    PlanningPDFCreator.makeClosedDay(part);
-                }
+                PlanningPDFCreator.makeClosedDay(part, date, gaps, conn);
             }
             else
             {
@@ -175,10 +171,43 @@ public class PlanningPDFCreator
 
     /**
      * @param part
+     * @param closeComment 
+     * @throws SQLException 
      */
-    private static void makeClosedDay(DocPart part)
-    {        
-        part.replaceTag("$KEEPER$", "pass:q[<color r=\"0\" b=\"0\" g=\"255\">*Geschlossen*</color>]");        
+    private static void makeClosedDay(DocPart part, Date date, List<Interval> gaps, Connection conn) throws SQLException
+    {
+        String comment = null;
+        if (gaps == null || gaps.isEmpty())
+        {
+            comment = "Ruhetag";
+        }
+        else
+        {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+            try
+            {
+                stmt = conn.prepareStatement("select text from notes where date=? and closed=\"true\"");
+                stmt.setDate(1, date);
+                rs = stmt.executeQuery();
+                if (rs.next())
+                {
+                    comment = rs.getString("text");
+                }
+            }
+            finally
+            {
+                DBUtils.closeQuitly(rs);
+                DBUtils.closeQuitly(stmt);
+            }
+        }
+
+        if (comment != null)
+        {
+            String replacement = String.format("pass:q[<color r=\"0\" b=\"0\" g=\"255\">*%1$s*</color>]", comment);
+            part.replaceTag("$KEEPER$", replacement);
+            part.replaceTag("$GAPS$", "");
+        }
     }
 
 

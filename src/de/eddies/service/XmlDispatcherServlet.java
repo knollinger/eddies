@@ -100,11 +100,4 @@ public class XmlDispatcherServlet extends HttpServlet
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
-
-    @Override
-    public void init(ServletConfig cfg)
-    {
-
-        System.out.println(cfg);
-    }
 }

@@ -1,7 +1,0 @@
-CREATE TABLE `EDDIES`.`notes` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT ,
-  `date` DATE NOT NULL,
-  `closed` VARCHAR(10) NOT NULL ,
-  `text` VARCHAR(2048) NOT NULL ,
-  PRIMARY KEY (`id`)
-);

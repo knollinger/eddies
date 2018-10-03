@@ -41,7 +41,6 @@ public class DocBuilder
      */
     public InputStream getDocument() throws IOException
     {
-        System.out.println(this.buffer.toString());
         return new ByteArrayInputStream(this.buffer.toString().getBytes("UTF-8"));
     }
 

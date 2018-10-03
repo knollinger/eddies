@@ -33,7 +33,6 @@ public class CalendarGapScanner implements Runnable
             Date endDate = this.calcEndDate();
 
             Map<Date, List<Interval>> allGaps = GapFinder.findAllGaps(startDate, endDate, conn);
-            System.out.println(allGaps);
             if (!allGaps.isEmpty())
             {
                 MailSender.sendReminder(allGaps, conn);
