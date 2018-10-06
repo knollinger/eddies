@@ -1,0 +1,6 @@
+CREATE TABLE `EDDIES`.`products` (
+  `id` INT(10) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(256) NOT NULL,
+  `extern` DOUBLE NOT NULL,
+  `intern` DOUBLE NULL DEFAULT NULL,
+  PRIMARY KEY (`id`));

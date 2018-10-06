@@ -26,7 +26,6 @@ public class WebAppContextListener implements ServletContextListener
             
             MidnightScheduler.getInstance().startup();
             MidnightScheduler.getInstance().schedule(new CalendarGapScanner());
-            new CalendarGapScanner().run();
         }
         catch (Exception e)
         {

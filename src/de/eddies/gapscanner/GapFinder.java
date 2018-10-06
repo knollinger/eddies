@@ -182,8 +182,6 @@ public class GapFinder
         c.setFirstDayOfWeek(Calendar.SUNDAY);
         int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
 
-        System.out.println(date + ": dayOfWeek: " + dayOfWeek);
-
         return dayOfWeek - 1;
 
     }

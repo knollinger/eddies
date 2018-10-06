@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.zip.GZIPOutputStream;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

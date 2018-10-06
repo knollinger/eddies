@@ -176,10 +176,12 @@ public class PlanningPDFCreator
      */
     private static void makeClosedDay(DocPart part, Date date, List<Interval> gaps, Connection conn) throws SQLException
     {
-
-        String replacement = "pass:q[<color r=\"0\" b=\"0\" g=\"255\">*Geschlossen*</color>]";
+        String replacement = "";
+        if (gaps == null || gaps.isEmpty())
+        {
+            replacement = "pass:q[<color r=\"0\" b=\"0\" g=\"255\">*Geschlossen*</color>]";
+        }
         part.replaceTag("$KEEPER$", replacement);
-//        part.replaceTag("$GAPS$", "");
     }
 
 
